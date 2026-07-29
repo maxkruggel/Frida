@@ -3,6 +3,10 @@
 Ein digitales Bullet Journal in Filzstift-Optik: jeden Tag in unter 30 Sekunden festhalten,
 wie es dir ging und was los war. 100 % lokal, kein Konto, kein Abo, keine Streaks.
 
+Stand **V2.0**: Monats- und Jahresreviews, Zyklus-Schätzung, Korrelations-Karten,
+blätterbare Jahresansicht, drei Themes (inkl. Nachtpapier), optionale PIN-Sperre,
+CSV-Export, teilbare Wochen-/Jahresbilder, Notiz-Suche und „Vor einem Jahr".
+
 ## Dateien
 
 | Datei | Rolle |

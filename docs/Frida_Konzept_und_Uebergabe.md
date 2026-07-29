@@ -3,7 +3,7 @@
 **Name:** Frida („dein Jahr in Farbe")
 Persona-Ansatz: Die App ist eine Begleiterin, keine Software – sie spricht in der Ich-Form („Ich bin Frida. Ich male dein Jahr auf eine Seite."). Die Malerin-Assoziation ist gewollt und trägt die Filzstift-Ästhetik. Perspektivisch kann Frida eine Stimme bekommen (siehe Backlog V2).
 
-**Stand:** 29.07.2026 · **V1.3.1** (V1 aus dem Chat, V1.1–V1.3 in Claude Code umgesetzt)
+**Stand:** 29.07.2026 · **V2.0** (V1 aus dem Chat, V1.1–V1.3.2 und V2.0 in Claude Code umgesetzt)
 **Dateien:** `index.html` (die App, ehemals `frida.html`) + `sw.js` + `manifest.webmanifest` + App-Icons + `favicon.ico`. Die App selbst bleibt eine einzige Datei ohne Build und ohne Abhängigkeiten, komplett offline-fähig; Service Worker und Manifest sind bewusste, minimale Ausnahmen für die PWA-Installation.
 
 ---
@@ -83,6 +83,24 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 - **Persönliche Willkommens-Animation:** Nach „Los geht's" erscheint einmalig ein Overlay im Splash-Stil mit den drei aufpoppenden Markern und der Tageszeit-Begrüßung (**„Hey, {Name}."** bzw. abends **„Guten Abend, {Name}."**) in Handschrift, das nach ~2,4 s von selbst in den Heute-Screen übergeht.
 - **Jedes Tippen speichert:** Ampel-Tipp, Chip-Tipp und Notiz (entprellt) schreiben sofort in den State – es kann kein Eintrag mehr „verloren gehen", weil der Speichern-Button vergessen wurde. Der Button heißt jetzt **„Fertig"** und schließt den Tag nur noch ab (Zusammenfassung + Impulse). Werden alle Markierungen wieder abgewählt, wird der leere Tag sauber entfernt statt als leerer Eintrag zu bleiben.
 
+**Neu in V2.0 (V2-Backlog bis auf die Stimme + Feinschliff + neue Ideen):**
+
+- **Blätterbare Jahresansicht:** Pfeile wie in der Monatsnavigation, vom Jahr des ältesten Eintrags (bzw. der Einrichtung) bis heute. Damit bleibt das 2026er-Jahresbild auch ab dem 1.1.2027 erreichbar. Beim Blättern in ein vergangenes Jahr zeigt die Statistik-Karte „{Jahr} in Zahlen" statt des aktuellen Monats.
+- **Zyklus-Intelligenz:** Aus den getrackten Perioden-Tagen (Lücken ≤ 2 Tage = dieselbe Periode) werden Zyklusstarts gruppiert; ab 2 Starts mit plausiblen Längen (18–45 Tage) wird der Schnitt der letzten 6 Zyklen gebildet. Der Heute-Screen zeigt Zyklustag, Rhythmus und die geschätzte nächste Periode – mit festem Disclaimer („keine Grundlage für Verhütung, keine Diagnose"). Ein neuer Impuls meldet sich 2 Tage vor dem erwarteten Start. Erscheint nur, wenn das Thema „Periode" aktiv ist und genug Daten da sind.
+- **Korrelations-Karten** („Frida ist was aufgefallen", Jahr-Screen): Gleiche-Tag-Zusammenhänge zwischen Häkchen- und Ampel-Themen. Konservativ: mindestens 8 Tage je Gruppe, mindestens 18 Prozentpunkte Unterschied im Grün-Anteil, max. 3 Karten, Formulierung immer als Muster („häufiger/seltener grün – X % statt Y %"), nie als Ursache.
+- **Themes:** Klassik, Rosé, Nachtpapier – reine CSS-Token-Overrides über `html[data-theme]`, Auswahl im Mehr-Screen, `theme-color`-Meta zieht mit. Auch die Canvas-Bilder folgen dem Theme.
+- **PIN-Sperre (Sichtschutz):** optionale 4-stellige PIN, als Hash in `settings.pin` (keine Verschlüsselung – ehrlich als Sichtschutz kommuniziert). Sperrt beim Start und nach > 5 Minuten im Hintergrund. „PIN vergessen?" bietet nur den ehrlichen Ausweg: Zurücksetzen (Backup danach wieder einspielbar).
+- **CSV-Export** zusätzlich zu JSON (Mehr → Backup): Semikolon-getrennt für deutsches Excel/Numbers, BOM für Umlaute, Formel-Injection entschärft (`'`-Präfix bei `=+-@`). Zählt bewusst **nicht** als Backup (Reviews/Einstellungen stecken nur im JSON).
+- **Teilbares Wochenbild:** Canvas-Render der letzten 7 Tage (1080×1080, Papier-Look, Klecks-Swatches, ohne Notizen und ohne Namen), Versand über das Teilen-Blatt wie beim Backup. Monat-Screen → „Zum Teilen".
+- **Jahresreview + teilbares Jahresbild:** Am 31.12. fragt Frida analog zum Monatsreview nach dem Jahr (Nachholen 1.–7. Januar); gespeichert unter `reviews["YYYY"]`. Das 12×31-Jahresgrid gibt es als Canvas-PNG („Dieses Jahr als Bild") – der Year-in-Pixels-Social-Moment.
+- **Monatsreview nachholen & bearbeiten:** Verpasste Reviews werden in den ersten 7 Tagen des Folgemonats nachgefragt (nur wenn der Monat Einträge hat); jede Review-Karte hat „Bearbeiten", vergangene Monate ohne Review „Review nachtragen". Manuelles Öffnen fasst `lastReviewPrompt` nicht an.
+- **„Vor einem Jahr":** Karte im Heute-Screen, wenn es zum angezeigten Tag einen Eintrag vom selben Kalendertag des Vorjahres gibt (Farben + Notiz). Die emotionale Belohnung fürs Dranbleiben.
+- **Notiz-Suche** (Monat-Screen): Volltextsuche über alle Notizen aller Monate, Tap springt zum Tag.
+- **Mehr Impulse + saisonale Varianten:** neue Regeln (Streit, Zyklus-Vorbote, Winterlicht, „Menschen tun dir gut"), der grüne Fallback-Anker hat jetzt vier Jahreszeiten-Texte (`FALLBACK_SEASONS`).
+- **Feinschliff:** Monats-Statistik speist sich aus den tatsächlich aktiven Themen statt hart verdrahtetem Sport/Soziales; Monatsraster mit Wochentags-Kürzeln und Wochenend-Schattierung, scrollt im aktuellen Monat automatisch zur Heute-Spalte; eigene Dialoge im Frida-Look statt `prompt()`/`confirm()`; Desktop/iPad zentriert auf ~520 px.
+
+**Bewusst zurückgestellt:** „Frida spricht" (TTS). Die deutschen System­stimmen klingen nicht nach warmer Begleiterin, und eine API-Stimme würde das Kernversprechen „nichts verlässt dein Gerät" brechen. Die Persona ist dafür weiterhin angelegt.
+
 **Qualitäts-Basis**: Safe-Areas (Notch), 44-px-Touch-Targets, `prefers-reduced-motion`, Fokus-Styles, konsequentes Escaping aller nutzer- und importkontrollierten Ausgaben (auch in Attributen).
 
 **Default-Habits (adaptiert aus der Vorlage, Stand V1.3):**
@@ -112,8 +130,10 @@ Ein einziger localStorage-Key: `frida_v1`
     "2026-07-29": { "gefuehle": "g", "schlaf": "y", "sport": true, "periode": true, "note": "Guter Tag." }
   },
   "reviews": {
-    "2026-07": { "gefuehl": "g", "note": "Voller Monat, aber ein guter.", "createdAt": "2026-07-31T18:00:00.000Z" }
-  }
+    "2026-07": { "gefuehl": "g", "note": "Voller Monat, aber ein guter.", "createdAt": "2026-07-31T18:00:00.000Z" },
+    "2026":    { "gefuehl": "g", "note": "Ein volles, gutes Jahr.", "createdAt": "2026-12-31T18:00:00.000Z" }
+  },
+  "settings": { "theme": "klassik", "pin": null }
 }
 ```
 
@@ -125,6 +145,9 @@ Konventionen:
 - Das Backup ist der komplette State – Import ersetzt alles nach Rückfrage und läuft durch `sanitizeImport()` (Struktur prüfen, Felder normalisieren, Unbekanntes verwerfen); Export-Dateiname `frida-backup-YYYY-MM-DD.json`
 - Ein beim Laden nicht parsebarer State wird nie stillschweigend überschrieben, sondern vorher unter `frida_v1_corrupt` weggesichert
 - **Monatsreviews** (seit V1.2): Key `YYYY-MM` unter `reviews`, Felder `gefuehl` (`"g" | "y" | "r"`, optional), `note` (optional), `createdAt`. `profile.lastReviewPrompt` merkt sich den zuletzt erfragten Monat, damit pro Monat nur einmal gefragt wird – auch nach „Heute nicht". Beide Felder sind additiv (kein Schema-Bruch, alte Stände werden beim Laden nachgezogen).
+- **Jahresreviews** (seit V2.0): gleicher Aufbau unter dem Key `YYYY` im selben `reviews`-Objekt; `profile.lastYearReviewPrompt` analog. Ältere App-Versionen verwerfen Jahres-Keys beim Import einfach (ihr Regex matcht nur `YYYY-MM`) – kein Bruch.
+- **Settings** (seit V2.0, additiv): `settings.theme` (`"klassik" | "rose" | "nacht"`) und `settings.pin` (Hash-String oder `null`). Die PIN ist ein Sichtschutz, keine Verschlüsselung – die Daten liegen weiterhin lesbar im localStorage, und der Hash wandert mit ins Backup.
+- Schema-Version bleibt **1**: alles Neue ist additiv, ältere Stände werden beim Laden nachgezogen, `sanitizeImport()` normalisiert alle neuen Felder mit Whitelists.
 
 ---
 
@@ -147,6 +170,8 @@ Konventionen:
 ---
 
 ## 8. Design-System
+
+Seit V2.0 gibt es drei Papier-Sets (Klassik, Rosé, Nachtpapier) als reine Token-Overrides über `html[data-theme]` – die Werte unten sind das Klassik-Set. Neue Farben immer als Token anlegen, nie hart in Komponenten schreiben, sonst bricht das Nachtpapier.
 
 | Token | Wert | Rolle |
 |---|---|---|
@@ -174,11 +199,15 @@ Regelbasiert, kein LLM, alles offline. Regeln und Texte liegen seit V1.1 in eine
 | 3 | Geweint heute | „Tränen sind ein Ventil, kein Fehler" |
 | 4 | Periode heute | Wärme, bequeme Kleidung, kürzere To-do-Liste |
 | 5 | Erkältung heute | Tee, Schlaf, wenig Programm – Gesundwerden ist Tagesaufgabe genug *(neu in V1.1)* |
-| 6 | Sport an 3 Tagen in Folge | Regenerations-Empfehlung |
-| 7 | Schlaf ≥ 3× rot in 5 Tagen | 30 Minuten früher ins Bett |
-| 8 | Overthinking ≥ 4×/Woche **und** soziale Kontakte ≤ 1× | „Schreib jemandem, den du magst" |
-| 9 | Alkohol ≥ 3×/Woche | Neutraler Impuls für einen freien Abend |
-| 10 | Sonst: Gefühle grün | Positiver Anker („was hat gutgetan – wiederholen") |
+| 6 | Zyklus: erwarteter Periodenstart in ≤ 2 Tagen (bzw. überfällig) | „Dein Zyklus meldet sich" – Vorbote, extra nachsichtig sein *(neu in V2.0)* |
+| 7 | Streit heute | „Nach dem Gewitter" – nicht heute lösen müssen, kleiner Schritt morgen *(neu in V2.0)* |
+| 8 | Sport an 3 Tagen in Folge | Regenerations-Empfehlung |
+| 9 | Schlaf ≥ 3× rot in 5 Tagen | 30 Minuten früher ins Bett |
+| 10 | Overthinking ≥ 4×/Woche **und** soziale Kontakte ≤ 1× | „Schreib jemandem, den du magst" |
+| 11 | Alkohol ≥ 3×/Woche | Neutraler Impuls für einen freien Abend |
+| 12 | Winter (Dez–Feb) und Gefühle gelb | „Licht tanken" – mittags 10 Minuten raus *(neu in V2.0)* |
+| 13 | Soziale Kontakte **und** Gefühle grün | „Menschen tun dir gut" – Muster festhalten *(neu in V2.0)* |
+| 14 | Sonst: Gefühle grün | Positiver Anker – seit V2.0 mit vier Jahreszeiten-Varianten (`FALLBACK_SEASONS`) |
 
 **Tonalität:** warm, per Du, in Fridas Ich-Stimme, nie belehrend, nie diagnostisch – auch keine Substanz-/Präparate-Empfehlungen (in V1.1 wurde z. B. „Magnesium" bewusst gestrichen). **Harte Grenze:** Frida ist kein Medizinprodukt und stellt keine Diagnosen – der Disclaimer steht im Mehr-Screen und nennt als niedrigschwellige Anlaufstelle die Telefonseelsorge (116 123). Bei anhaltend roten Tagen wird ausschließlich zum Gespräch mit vertrauten Menschen bzw. professioneller Unterstützung ermutigt, nie „therapiert".
 
@@ -202,15 +231,21 @@ Regelbasiert, kein LLM, alles offline. Regeln und Texte liegen seit V1.1 in eine
 
 **V1.2 – Monatsreview: ✅ umgesetzt** – am letzten Kalendertag des Monats fragt Frida beim App-Start (bzw. beim Tageswechsel, wenn die App im Speicher bleibt) automatisch nach einem kurzen Monatsrückblick: Monats-Statistik, eine Ampel-Frage („Wie war dieser Monat insgesamt?") und eine optionale Notiz. Pro Monat nur eine Nachfrage, „Heute nicht" wird respektiert; das gespeicherte Review erscheint als Karte in der Monatsansicht und wandert mit ins Backup.
 
-**V2 – Ausbau**
-- **Frida spricht:** Impulse und Begrüßung optional als Stimme (Text-to-Speech bzw. API-Voice) – die Persona ist dafür angelegt
-- Zyklus-Intelligenz: aus getrackten Perioden-Tagen die nächste Phase schätzen und Impulse darauf abstimmen
-- Korrelations-Karten („An Tagen mit Sport schläfst du 2× häufiger grün")
-- Themes (2–3 Papier-/Markerfarben-Sets), optionale PIN-Sperre
-- CSV-Export zusätzlich zu JSON
-- Wochen-Rückblick als teilbares Bild (Canvas-Render des Rasters – Social-Loop)
-- Mehr Impulse + saisonale Varianten (Datenstruktur dafür steht seit V1.1)
-- Jahresansicht für vergangene Jahre blätterbar machen
+**V2.0 – Ausbau: ✅ umgesetzt (bis auf die Stimme)**
+- ✅ Zyklus-Intelligenz (Schätzung + abgestimmter Impuls, mit Disclaimer)
+- ✅ Korrelations-Karten („An Tagen mit Sport ist ‚Schlaf' häufiger grün – X % statt Y %")
+- ✅ Themes (Klassik/Rosé/Nachtpapier) + optionale PIN-Sperre
+- ✅ CSV-Export zusätzlich zu JSON
+- ✅ Wochen-Rückblick als teilbares Bild (Canvas)
+- ✅ Mehr Impulse + saisonale Varianten
+- ✅ Jahresansicht für vergangene Jahre blätterbar
+- Zusätzlich (war nicht im Backlog): Jahresreview + teilbares Jahresbild, „Vor einem Jahr"-Karte, Notiz-Suche, Monatsreview nachholen/bearbeiten, eigene Dialoge, Statistik aus aktiven Themen, Wochentage im Raster, Desktop-Zentrierung
+- ⏸ **Frida spricht** (TTS/API-Voice): bewusst zurückgestellt – Systemstimmen tragen die Persona nicht, eine API-Stimme bräche das Lokal-Versprechen
+
+**V3 – Ideen (offen)**
+- „Frida spricht", falls lokale Stimmen gut genug werden
+- Zyklus-Phasen feiner (Impulse je Phase statt nur Vorbote)
+- Korrelation mit Zeitversatz (Sport heute → Schlaf morgen)
 
 **Bewusst NICHT geplant:** Streaks, Punkte, Level, Cloud-Sync, Accounts, Werbung.
 
@@ -218,4 +253,4 @@ Regelbasiert, kein LLM, alles offline. Regeln und Texte liegen seit V1.1 in eine
 
 ## 12. Startprompt für Claude Code
 
-> Im Repo liegt `index.html` – eine lokale Habit-/Mood-Tracker-App („Frida") als Single-File-HTML, plus dieses Konzeptdokument. Lies zuerst das Dokument, insbesondere Datenmodell (Abschnitt 6), Architektur inkl. technischer Leitplanken (7) und Design-System (8). Halte dich strikt an: Single File, kein Framework, localStorage-Key `frida_v1` mit `version`-Feld (Migrationen schreiben statt Schema brechen), deterministische Swatch-Rotation, konsequentes Escaping, Fridas Ich-Stimme in Onboarding und Impulsen, Tonalität warm und nie diagnostisch. V1.1 ist umgesetzt – weiter geht es mit dem V2-Backlog aus Abschnitt 11. Teste jede Änderung im iPhone-Viewport (390×844).
+> Im Repo liegt `index.html` – eine lokale Habit-/Mood-Tracker-App („Frida") als Single-File-HTML, plus dieses Konzeptdokument. Lies zuerst das Dokument, insbesondere Datenmodell (Abschnitt 6), Architektur inkl. technischer Leitplanken (7) und Design-System (8). Halte dich strikt an: Single File, kein Framework, localStorage-Key `frida_v1` mit `version`-Feld (Migrationen schreiben statt Schema brechen), deterministische Swatch-Rotation, konsequentes Escaping, Fridas Ich-Stimme in Onboarding und Impulsen, Tonalität warm und nie diagnostisch. V2.0 ist umgesetzt – offen sind die V3-Ideen aus Abschnitt 11 (u. a. die zurückgestellte Stimme). Teste jede Änderung im iPhone-Viewport (390×844).

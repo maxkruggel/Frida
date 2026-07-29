@@ -28,11 +28,35 @@
     --m-yellow:#E0AC35;
     --m-blue:#3E63A6;
     --m-pink:#DE8E9C;
+    --dot:rgba(69,60,49,.10);
+    --tab-bg:rgba(251,246,234,.92);
+    --grid-line:rgba(221,210,188,.55);
+    --wkend:rgba(69,60,49,.045);
+    --warn-bg:#FBEFCE;
+    --warn-line:#E4CE8F;
     --radius:18px;
     --safe-b:env(safe-area-inset-bottom, 0px);
     --safe-t:env(safe-area-inset-top, 0px);
     --hand:"Noteworthy","Bradley Hand","Segoe Print","Comic Sans MS",cursive;
     --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  }
+  /* Themes: 2 zusätzliche Papier-Stimmungen, rein über Token-Overrides */
+  html[data-theme="rose"]{
+    --paper:#F6E8E2; --paper-deep:#F0DCD3; --card:#FBF2ED;
+    --ink:#46352D; --ink-soft:#97806F; --line:#E3CFC2;
+    --berry:#A04A5E; --berry-soft:#F3DDE0;
+    --dot:rgba(70,53,45,.10); --tab-bg:rgba(251,242,237,.92);
+    --grid-line:rgba(227,207,194,.6); --wkend:rgba(70,53,45,.04);
+  }
+  html[data-theme="nacht"]{
+    --paper:#26221B; --paper-deep:#201C16; --card:#2E2921;
+    --ink:#EDE4D3; --ink-soft:#A2947E; --line:#453E32;
+    --berry:#C97B90; --berry-soft:#463039;
+    --m-green:#4C9367; --m-red:#DF6A60; --m-yellow:#E4B84E;
+    --m-blue:#5E82C2; --m-pink:#E39DA9;
+    --dot:rgba(237,228,211,.07); --tab-bg:rgba(46,41,33,.92);
+    --grid-line:rgba(69,62,50,.85); --wkend:rgba(237,228,211,.05);
+    --warn-bg:#3A3423; --warn-line:#6B5E33;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -43,7 +67,7 @@
     /* App-Gefühl: die Seite selbst sitzt fest, gescrollt wird nur in den Screens */
     position:fixed;inset:0;width:100%;overflow:hidden;
     /* Punktraster wie Bullet-Journal-Papier */
-    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
     background-size:22px 22px;
   }
   button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
@@ -67,7 +91,7 @@
   #splash{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:14px;text-align:center;
     padding:0 26px;background:var(--paper);
-    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
     background-size:22px 22px;transition:opacity .45s ease}
   #splash.hide{opacity:0;pointer-events:none}
   #splash h1{font-size:46px}
@@ -94,7 +118,7 @@
   #welcome{position:fixed;inset:0;z-index:55;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:14px;text-align:center;
     padding:0 26px;background:var(--paper);
-    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
     background-size:22px 22px;transition:opacity .5s ease}
   #welcome.show{display:flex}
   #welcome.hide{opacity:0;pointer-events:none}
@@ -104,7 +128,7 @@
 
   /* ─────────────────────────  ONBOARDING  ───────────────────────── */
   #onboarding{position:fixed;inset:0;z-index:50;background:var(--paper);
-    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
     background-size:22px 22px;display:none;flex-direction:column;
     padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
     overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
@@ -121,7 +145,7 @@
 
   /* ─────────────────────────  MONATSREVIEW  ───────────────────────── */
   #monthReview{position:fixed;inset:0;z-index:55;background:var(--paper);
-    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
     background-size:22px 22px;display:none;flex-direction:column;
     padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
     overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
@@ -202,8 +226,11 @@
     border-radius:var(--radius);background:var(--card);padding:10px 8px 12px}
   .grid{display:grid;grid-auto-rows:34px;align-items:center;min-width:max-content}
   .g-corner{position:sticky;left:0;background:var(--card);z-index:2}
-  .g-day{font-size:10.5px;color:var(--ink-soft);text-align:center;font-weight:600}
+  .g-day{font-size:10.5px;color:var(--ink-soft);text-align:center;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+  .g-day em{font-style:normal;font-size:8px;font-weight:700;color:var(--ink-soft);opacity:.75;letter-spacing:.02em}
   .g-day.today{color:var(--berry);font-weight:800}
+  .g-day.today em{color:var(--berry);opacity:1}
   .g-label{
     position:sticky;left:0;z-index:2;background:var(--card);padding-right:8px;
     display:flex;align-items:center
@@ -214,9 +241,10 @@
     background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis
   }
   .g-cell{width:30px;height:100%;display:flex;align-items:center;justify-content:center;
-    border-left:1px solid rgba(221,210,188,.55)}
+    border-left:1px solid var(--grid-line)}
   .g-cell .sw{width:20px;height:15px}
   .g-cell:active .sw{transform:scale(1.15) rotate(var(--r,0deg))}
+  .g-cell.we,.g-day.we{background:var(--wkend)}
   .g-cell.today-col{background:rgba(156,79,102,.06)}
   .g-cell.future{opacity:.4}
 
@@ -252,7 +280,7 @@
   #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;
     display:flex;justify-content:space-around;align-items:stretch;
     padding:8px 10px calc(8px + var(--safe-b));
-    background:rgba(251,246,234,.92);backdrop-filter:blur(14px);
+    background:var(--tab-bg);backdrop-filter:blur(14px);
     border-top:1.5px solid var(--line)}
   #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
     min-height:52px;justify-content:center;color:var(--ink-soft);font-size:11px;font-weight:600;position:relative}
@@ -264,7 +292,7 @@
 
   /* ─────────────────────────  BANNER / TOAST  ───────────────────────── */
   #backupBanner{display:none;align-items:center;gap:12px;margin-bottom:14px;
-    background:#FBEFCE;border:1.5px solid #E4CE8F;border-radius:14px;padding:12px 14px}
+    background:var(--warn-bg);border:1.5px solid var(--warn-line);border-radius:14px;padding:12px 14px}
   #backupBanner.show{display:flex}
   #backupBanner p{flex:1;font-size:13.5px;line-height:1.4}
 
@@ -311,6 +339,43 @@
   .day-dot b{font-size:15px;font-family:var(--hand)}
   .day-dot .sw{width:14px;height:11px}
   .day-dot.sel{border-color:var(--berry);background:var(--berry-soft)}
+
+  /* ─────────────────────────  DIALOG (ersetzt prompt/confirm)  ───────────────────────── */
+  #dialog{position:fixed;inset:0;z-index:68;display:none;align-items:center;justify-content:center;
+    padding:24px;background:rgba(20,16,10,.38)}
+  #dialog.show{display:flex}
+  .dlg{width:100%;max-width:340px;background:var(--card);border:1.5px solid var(--line);
+    border-radius:20px;padding:20px;animation:fadeUp .25s ease}
+  .dlg h3{font-family:var(--hand);font-size:22px;margin-bottom:8px}
+  .dlg p{font-size:14.5px;line-height:1.55;color:var(--ink);white-space:pre-line}
+  .dlg input{width:100%;min-height:48px;margin-top:14px;padding:0 14px;font-size:17px;
+    background:var(--paper-deep);border:1.5px solid var(--line);border-radius:12px}
+  .dlg input:focus{border-color:var(--berry);outline:none}
+  .dlg-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .btn.danger{background:var(--m-red);color:#fff}
+
+  /* ─────────────────────────  PIN-SPERRE  ───────────────────────── */
+  #lockScreen{position:fixed;inset:0;z-index:58;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:16px;text-align:center;padding:0 26px;
+    background:var(--paper);
+    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-size:22px 22px}
+  #lockScreen.show{display:flex}
+  #lockScreen h1{font-size:36px}
+  #lockScreen p{color:var(--ink-soft);font-size:14px}
+  #lockPin{width:200px;min-height:56px;text-align:center;font-size:28px;letter-spacing:12px;
+    background:var(--card);border:1.5px solid var(--line);border-radius:16px}
+  #lockPin:focus{border-color:var(--berry);outline:none}
+
+  /* Theme-Auswahl im Mehr-Screen */
+  .theme-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+
+  /* Desktop / iPad: Inhalt zentriert statt volle Fensterbreite */
+  @media (min-width:620px){
+    .screen,#onboarding,#monthReview,#lockScreen{
+      padding-left:calc(50vw - 260px);padding-right:calc(50vw - 260px)}
+    #tabbar{padding-left:calc(50vw - 270px);padding-right:calc(50vw - 270px)}
+  }
 </style>
 </head>
 <body>
@@ -397,21 +462,21 @@
 </div>
 
 <!-- ═══════════════ MONATSREVIEW ═══════════════ -->
-<div id="monthReview" role="dialog" aria-modal="true" aria-label="Monatsreview">
-  <span class="eyebrow">Monatsreview</span>
+<div id="monthReview" role="dialog" aria-modal="true" aria-label="Review">
+  <span class="eyebrow" id="mrEyebrow">Monatsreview</span>
   <h2 id="mrTitle"></h2>
   <p class="mr-intro" id="mrIntro"></p>
   <div class="mr-body">
     <div class="card">
-      <span class="eyebrow">Dein Monat in Zahlen</span>
+      <span class="eyebrow" id="mrStatsQ">Dein Monat in Zahlen</span>
       <div id="mrStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
     </div>
     <div class="card">
-      <span class="eyebrow">Wie war dieser Monat insgesamt?</span>
+      <span class="eyebrow" id="mrScaleQ">Wie war dieser Monat insgesamt?</span>
       <div class="mr-scale" id="mrScale"></div>
     </div>
     <div class="card">
-      <span class="eyebrow">Was bleibt dir von diesem Monat? <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
+      <span class="eyebrow" id="mrNoteQ">Was bleibt dir von diesem Monat? <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
       <textarea id="mrNote" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
   </div>
@@ -466,6 +531,9 @@
     </div>
     <div id="impulseWrap"></div>
   </div>
+
+  <div id="cycleCard"></div>
+  <div id="memoryCard"></div>
 </main>
 
 <!-- ═══════════════ MONAT ═══════════════ -->
@@ -493,6 +561,20 @@
     <span class="eyebrow">Notizen in diesem Monat</span>
     <div id="noteHistory"></div>
   </div>
+
+  <div class="card" style="margin-top:14px">
+    <span class="eyebrow">Notizen durchsuchen</span>
+    <div class="field" style="margin-top:8px">
+      <input type="text" id="noteSearch" placeholder="Wonach suchst du?" maxlength="60" aria-label="Notizen durchsuchen">
+    </div>
+    <div id="noteSearchResults"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <span class="eyebrow">Zum Teilen</span>
+    <p class="hint" style="margin:6px 0 12px">Deine letzten sieben Tage als Bild – nur Farben und Themen, keine Notizen.</p>
+    <button class="btn small line" id="shareWeekBtn">Meine Woche als Bild</button>
+  </div>
 </main>
 
 <!-- ═══════════════ JAHR ═══════════════ -->
@@ -500,14 +582,29 @@
   <div class="screen-head">
     <div>
       <span class="eyebrow">Jahr in Farben</span>
-      <h2 id="yearTitle"></h2>
+      <h2>Dein Jahr</h2>
     </div>
+  </div>
+  <div class="month-nav">
+    <button class="nav-arrow" id="prevYear" aria-label="Voriges Jahr">‹</button>
+    <span class="hand" id="yearTitle"></span>
+    <button class="nav-arrow" id="nextYear" aria-label="Nächstes Jahr">›</button>
   </div>
   <div class="year-grid" id="yearGrid"></div>
   <p class="hint">Jede Zelle ist ein Tag, die Farbe dein Gefühl. So malt sich dein Jahr von selbst – Lücken sind erlaubt.</p>
   <div class="card" style="margin-top:14px">
-    <span class="eyebrow">Dieser Monat in Zahlen</span>
+    <span class="eyebrow" id="yearStatsQ">Dieser Monat in Zahlen</span>
     <div id="monthStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
+    <button class="btn small line" id="shareYearBtn" style="margin-top:12px">Dieses Jahr als Bild</button>
+  </div>
+  <div class="card" id="yearReviewCard" style="margin-top:14px;display:none">
+    <span class="eyebrow">Dein Jahresreview</span>
+    <div id="yearReviewBody" style="margin-top:8px"></div>
+  </div>
+  <div class="card" id="correlationCard" style="margin-top:14px;display:none">
+    <span class="eyebrow">Frida ist was aufgefallen</span>
+    <div id="correlationBody" style="margin-top:4px"></div>
+    <p class="hint">Muster aus deinen eigenen Einträgen – Zusammenhänge, keine Beweise.</p>
   </div>
 </main>
 
@@ -534,6 +631,20 @@
       <div><b>Backup importieren</b><div class="sub">Ersetzt alle aktuellen Daten</div></div>
       <button class="btn small line" id="importBtn">Importieren</button>
       <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+    <div class="set-row">
+      <div><b>Als CSV exportieren</b><div class="sub">Tabelle für Excel &amp; Numbers – ersetzt kein Backup</div></div>
+      <button class="btn small line" id="csvBtn">CSV</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Aussehen &amp; Schutz</span>
+    <p class="hint" style="margin:6px 0 4px">Dein Papier – drei Stimmungen, gleiche Frida.</p>
+    <div class="chip-wrap" id="themePicker" style="padding-top:8px"></div>
+    <div class="set-row" style="margin-top:12px;border-top:1px dashed var(--line)">
+      <div><b>PIN-Sperre</b><div class="sub">Sichtschutz beim Öffnen – 4 Ziffern</div></div>
+      <button class="switch" id="pinSwitch" role="switch" aria-checked="false" aria-label="PIN-Sperre"></button>
     </div>
   </div>
 
@@ -583,11 +694,32 @@
   <button data-tab="more"><span class="ico">⋯</span>Mehr</button>
 </nav>
 
+<!-- ═══════════════ PIN-SPERRE ═══════════════ -->
+<div id="lockScreen" aria-label="Gesperrt">
+  <h1 class="hand" id="lockGreeting">Hey.</h1>
+  <p>Frida ist zu – deine Seiten bleiben privat.</p>
+  <input id="lockPin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="PIN eingeben" placeholder="····">
+  <button class="btn ghost" id="lockForgot">PIN vergessen?</button>
+</div>
+
+<!-- ═══════════════ DIALOG ═══════════════ -->
+<div id="dialog">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <h3 id="dlgTitle"></h3>
+    <p id="dlgMsg"></p>
+    <input id="dlgInput" type="text" style="display:none">
+    <div class="dlg-btns">
+      <button class="btn ghost" id="dlgCancel">Abbrechen</button>
+      <button class="btn berry" id="dlgOk">Okay</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" role="status"></div>
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '2.0.0';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -610,10 +742,12 @@ const DEFAULT_HABITS = [
 
 function defaultState(){
   return {version:SCHEMA_VERSION,
-    profile:{name:'', onboarded:false, createdAt:new Date().toISOString(), lastExport:null, lastReviewPrompt:null},
+    profile:{name:'', onboarded:false, createdAt:new Date().toISOString(), lastExport:null,
+      lastReviewPrompt:null, lastYearReviewPrompt:null},
     habits: JSON.parse(JSON.stringify(DEFAULT_HABITS)),
     entries:{},
-    reviews:{}};
+    reviews:{},
+    settings:{theme:'klassik', pin:null}};
 }
 
 /* Migrationsanker: künftige Schema-Änderungen werden hier Schritt für Schritt hochgezogen. */
@@ -650,8 +784,13 @@ function load(){
 }
 function save(){ try{localStorage.setItem(KEY, JSON.stringify(S))}catch(e){ toast('Speichern fehlgeschlagen – Speicherplatz prüfen')} }
 let S = load() || defaultState();
-/* Additive Felder für Stände aus V1.1 nachziehen (kein Schema-Bruch) */
+/* Additive Felder für ältere Stände nachziehen (kein Schema-Bruch) */
 if(!S.reviews || typeof S.reviews!=='object') S.reviews={};
+if(!S.settings || typeof S.settings!=='object') S.settings={theme:'klassik', pin:null};
+if(!['klassik','rose','nacht'].includes(S.settings.theme)) S.settings.theme='klassik';
+if(typeof S.settings.pin!=='string') S.settings.pin=null;
+if(typeof S.profile.lastYearReviewPrompt!=='string') S.profile.lastYearReviewPrompt=null;
+applyTheme(S.settings.theme);
 
 /* ═══════════════════════ UTILS ═══════════════════════ */
 const $  = s => document.querySelector(s);
@@ -675,6 +814,108 @@ function offsetKey(base,off){const d=parseKey(base); d.setDate(d.getDate()+off);
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function buzz(ms=8){ try{ if(navigator.vibrate) navigator.vibrate(ms) }catch(e){} }
 function isStandalone(){ return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true }
+function cssColor(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() }
+
+/* ═══════════════════════ THEMES ═══════════════════════ */
+const THEMES=[
+  {id:'klassik', name:'Klassik',     paper:'#F5EEDF'},
+  {id:'rose',    name:'Rosé',        paper:'#F6E8E2'},
+  {id:'nacht',   name:'Nachtpapier', paper:'#26221B'},
+];
+function applyTheme(t){
+  if(t==='klassik') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme=t;
+  requestAnimationFrame(()=>{
+    const mc=document.querySelector('meta[name="theme-color"]');
+    if(mc) mc.setAttribute('content', cssColor('--paper'));
+  });
+}
+
+/* ═══════════════════════ DIALOG (statt prompt/confirm – bleibt im Frida-Look) ═══════════════════════ */
+let dlgResolve=null;
+function fridaDialog(o){
+  return new Promise(res=>{
+    dlgResolve=res;
+    $('#dlgTitle').textContent=o.title||'';
+    $('#dlgMsg').textContent=o.msg||'';
+    const inp=$('#dlgInput');
+    inp.style.display=o.input?'block':'none';
+    if(o.input){
+      inp.value=o.value||''; inp.placeholder=o.placeholder||'';
+      inp.maxLength=o.maxlength||120;
+      inp.type=o.numeric?'password':'text';
+      inp.inputMode=o.numeric?'numeric':'text';
+    }
+    const ok=$('#dlgOk');
+    ok.textContent=o.ok||'Okay';
+    ok.classList.toggle('danger',!!o.danger);
+    ok.classList.toggle('berry',!o.danger);
+    $('#dialog').classList.add('show');
+    if(o.input) setTimeout(()=>inp.focus(),80);
+  });
+}
+function dlgClose(val){
+  $('#dialog').classList.remove('show');
+  const r=dlgResolve; dlgResolve=null; if(r) r(val);
+}
+$('#dlgOk').addEventListener('click',()=>{ const inp=$('#dlgInput'); dlgClose(inp.style.display==='none'?true:inp.value) });
+$('#dlgCancel').addEventListener('click',()=>{ const inp=$('#dlgInput'); dlgClose(inp.style.display==='none'?false:null) });
+$('#dialog').addEventListener('click',e=>{ if(e.target.id==='dialog'){ const inp=$('#dlgInput'); dlgClose(inp.style.display==='none'?false:null) } });
+$('#dlgInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#dlgOk').click() } });
+const fridaConfirm = o => fridaDialog(o);
+const fridaPrompt  = o => fridaDialog({...o, input:true});
+
+/* ═══════════════════════ PIN-SPERRE (Sichtschutz, keine Verschlüsselung) ═══════════════════════ */
+const pinHash = p => String(hashStr('frida-pin:'+p));
+function showLock(){
+  if(!S.settings.pin) return;
+  $('#lockGreeting').textContent = greeting();   /* gleiche Tageszeit-Begrüßung wie der Heute-Screen */
+  $('#lockScreen').classList.add('show');
+  const i=$('#lockPin'); i.value='';
+}
+$('#lockPin').addEventListener('input',e=>{
+  const v=e.target.value.replace(/\D/g,'').slice(0,4); e.target.value=v;
+  if(v.length===4){
+    if(pinHash(v)===S.settings.pin){ $('#lockScreen').classList.remove('show'); buzz() }
+    else { e.target.value=''; toast('Das passt noch nicht'); buzz(20) }
+  }
+});
+$('#lockForgot').addEventListener('click',async()=>{
+  const ok=await fridaConfirm({title:'PIN vergessen?',
+    msg:'Ohne PIN kann ich nicht aufschließen. Ich kann Frida zurücksetzen – dabei gehen alle Daten auf diesem Gerät verloren. Ein Backup kannst du danach wieder einspielen.',
+    ok:'Zurücksetzen', danger:true});
+  if(!ok) return;
+  try{ localStorage.removeItem(KEY) }catch(e){}
+  location.reload();
+});
+let hiddenSince=null;
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) hiddenSince=Date.now();
+  else if(S.settings.pin && hiddenSince && Date.now()-hiddenSince > 5*60*1000) showLock();
+});
+
+/* ═══════════════════════ DATEI TEILEN / HERUNTERLADEN ═══════════════════════ */
+/* iOS-Home-Screen-Apps behandeln <a download> unzuverlässig – dort ist das
+   Teilen-Blatt der stabile Weg. Desktop lädt klassisch. Abbruch → false. */
+async function shareOrDownload(filename, mime, data){
+  const blob = data instanceof Blob ? data : new Blob([data],{type:mime});
+  try{
+    const file=new File([blob],filename,{type:mime});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:filename});
+      return true;
+    }
+  }catch(e){
+    if(e && e.name==='AbortError') return false;  /* bewusst abgebrochen */
+    /* sonst: weiter zum Download-Fallback */
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  return true;
+}
 
 /* ═══════════════════════ NAVIGATION ═══════════════════════ */
 let viewDate = todayKey();
@@ -686,6 +927,7 @@ function switchTab(name){
   $$('#tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
   $$('.screen').forEach(s=>s.classList.toggle('active', s.id==='screen-'+name));
   if(name==='month'){const d=parseKey(viewDate); monthCursor={y:d.getFullYear(), m:d.getMonth()}}
+  if(name==='year') yearCursor=new Date().getFullYear();
   renderActive();
   const sc=$('#screen-'+name); if(sc) sc.scrollTop=0;
 }
@@ -710,8 +952,9 @@ function checkDayRollover(){
     lastSeenDay=tk;
     viewDate=tk;
     monthCursor={y:new Date().getFullYear(), m:new Date().getMonth()};
+    yearCursor=new Date().getFullYear();
     renderActive();
-    maybeMonthReview();
+    maybeReviews();
   }
 }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDayRollover() });
@@ -754,6 +997,86 @@ function renderToday(){
   $('#checkinForm').style.display = has?'none':'block';
   $('#checkinDone').style.display = has?'block':'none';
   if(has) renderDone(); else renderForm();
+  renderCycleCard();
+  renderMemoryCard();
+}
+
+/* ═══════════════════════ ZYKLUS-INTELLIGENZ ═══════════════════════ */
+/* Aus getrackten Perioden-Tagen den eigenen Rhythmus schätzen. Bewusst
+   zurückhaltend: eine Schätzung aus den Einträgen, nie eine Diagnose und
+   keine Grundlage für Verhütung – das steht auch wörtlich in der Karte. */
+function periodStarts(){
+  const keys=Object.keys(S.entries).filter(k=>S.entries[k].periode===true).sort();
+  const starts=[]; let prev=null;
+  for(const k of keys){
+    /* Lücken bis 2 Tage gehören zur selben Periode (mal ein Tag nicht getrackt) */
+    if(!prev || daysBetween(parseKey(prev),parseKey(k))>2) starts.push(k);
+    prev=k;
+  }
+  return starts;
+}
+function cycleInfo(){
+  const p=habitById('periode'); if(!p || !p.active) return null;
+  const starts=periodStarts(); if(starts.length<2) return null;
+  const lens=[];
+  for(let i=1;i<starts.length;i++){
+    const d=daysBetween(parseKey(starts[i-1]),parseKey(starts[i]));
+    if(d>=18 && d<=45) lens.push(d);           /* nur plausible Zyklen zählen */
+  }
+  if(!lens.length) return null;
+  const recent=lens.slice(-6);
+  const avg=Math.round(recent.reduce((a,b)=>a+b,0)/recent.length);
+  const lastStart=starts[starts.length-1];
+  const tk=todayKey();
+  const dayIn=daysBetween(parseKey(lastStart),parseKey(tk))+1;
+  const rawNext=offsetKey(lastStart,avg);
+  const overdue=rawNext<tk;
+  let nextKey=rawNext;
+  while(nextKey<tk) nextKey=offsetKey(nextKey,avg);
+  const until=daysBetween(parseKey(tk),parseKey(nextKey));
+  return {avg, cycles:recent.length, lastStart, dayIn, nextKey, until, overdue};
+}
+function renderCycleCard(){
+  const w=$('#cycleCard'); w.innerHTML='';
+  if(viewDate!==todayKey()) return;
+  const ci=cycleInfo(); if(!ci) return;
+  const d=parseKey(ci.nextKey);
+  let when;
+  if(ci.overdue) when='Dein Schnitt ist schon erreicht – deine Periode könnte jeden Tag beginnen.';
+  else if(ci.until===0) when='Nach deinem Rhythmus könnte es <b>heute</b> losgehen.';
+  else if(ci.until===1) when='Nach deinem Rhythmus könnte es <b>morgen</b> losgehen.';
+  else when='Die nächste Periode erwarte ich um den <b>'+d.getDate()+'. '+MONTHS[d.getMonth()]+'</b> (in etwa '+ci.until+' Tagen).';
+  const card=document.createElement('div');
+  card.className='card'; card.style.marginTop='14px';
+  card.innerHTML=`<span class="eyebrow">Dein Zyklus</span>
+    <p style="font-size:14.5px;line-height:1.6;margin-top:8px">
+      Tag <b>${ci.dayIn}</b> – dein Rhythmus lag zuletzt bei etwa <b>${ci.avg} Tagen</b>. ${when}
+    </p>
+    <p class="hint">Eine Schätzung aus deinen Einträgen – keine Grundlage für Verhütung, keine Diagnose.</p>`;
+  w.appendChild(card);
+}
+
+/* ═══════════════════════ VOR EINEM JAHR ═══════════════════════ */
+function renderMemoryCard(){
+  const w=$('#memoryCard'); w.innerHTML='';
+  const d=parseKey(viewDate);
+  const prev=new Date(d.getFullYear()-1, d.getMonth(), d.getDate());
+  if(prev.getMonth()!==d.getMonth()) return;   /* 29. Februar ohne Gegenstück */
+  const k=keyOf(prev), e=S.entries[k];
+  if(!e || (!e.gefuehle && !e.note)) return;
+  const chips=activeHabits()
+    .filter(h=>e[h.id])
+    .slice(0,4)
+    .map(h=>`<span class="chip sel" style="pointer-events:none;min-height:34px;font-size:13.5px">
+      <i class="sw" style="--c:${habitColor(h,e[h.id])};--r:${rot(k+h.id)}"></i>${esc(h.label)}</span>`)
+    .join('');
+  const card=document.createElement('div');
+  card.className='card'; card.style.marginTop='14px';
+  card.innerHTML=`<span class="eyebrow">Vor einem Jahr</span>
+    <p class="hint" style="margin-top:6px">${WD[prev.getDay()]}, ${prev.getDate()}. ${MONTHS[prev.getMonth()]} ${prev.getFullYear()} – so sah dieser Tag auf deiner letzten Seite aus.</p>
+    ${chips?`<div class="summary-line">${chips}</div>`:''}
+    ${e.note?`<p style="font-size:14px;color:var(--ink-soft);margin-top:10px;font-style:italic">„${esc(e.note)}"</p>`:''}`;
+  w.appendChild(card);
 }
 
 /* Abend-Hinweis nur, solange der heutige Tag wirklich noch leer ist */
@@ -869,6 +1192,14 @@ const IMPULSE_RULES = [
    when:c => !!c.e.erkaeltung,
    t:'Gute Besserung',
    x:'Dein Körper kämpft gerade – hilf ihm mit Tee, Schlaf und wenig Programm. Gesundwerden ist heute Tagesaufgabe genug.'},
+  {id:'zyklus-bald',
+   when:c => c.isToday && c.cycle && !c.e.periode && (c.cycle.overdue || c.cycle.until<=2) && c.cycle.dayIn>5,
+   t:'Dein Zyklus meldet sich',
+   x:'Wenn ich richtig gerechnet habe, beginnt deine Periode in den nächsten Tagen. Sei extra nachsichtig mit dir – was sich gerade seltsam schwer anfühlt, liegt oft am Zyklus, nicht an dir.'},
+  {id:'streit',
+   when:c => !!c.e.streit,
+   t:'Nach dem Gewitter',
+   x:'Streit rumort nach, das ist normal. Du musst ihn nicht heute lösen – ein kleiner erster Schritt morgen reicht. Und sei dabei auch mit dir selbst nicht zu streng.'},
   {id:'sport-serie',
    when:c => c.v(0,'sport') && c.v(-1,'sport') && c.v(-2,'sport'),
    t:'Starke Serie',
@@ -885,19 +1216,38 @@ const IMPULSE_RULES = [
    when:c => c.count(7,'alkohol',Boolean)>=3,
    t:'Kleine Pause?',
    x:'Diese Woche schon dreimal angestoßen. Wie wäre heute ein freier Abend? Dein Schlaf zeigt es dir morgen im Raster.'},
+  {id:'winterlicht',
+   when:c => [11,0,1].includes(c.month) && c.e.gefuehle==='y',
+   t:'Licht tanken',
+   x:'Graue Jahreszeit, mittlerer Tag – das gehört oft zusammen. Wenn du kannst: mittags zehn Minuten raus ans Tageslicht. Mehr braucht es heute nicht.'},
+  {id:'soziales-gruen',
+   when:c => !!c.e.soziales && c.e.gefuehle==='g',
+   t:'Menschen tun dir gut',
+   x:'Ein grüner Tag und Gesellschaft – das passt oft zusammen. Merk dir kurz, mit wem heute war: Genau solche Verabredungen darfst du wiederholen.'},
 ];
+/* Saisonale Varianten des grünen Ankers – Datenstruktur statt Code (seit V1.1) */
+const FALLBACK_SEASONS = {
+  fruehling:'Ein grüner Tag. Nimm ihn mit nach draußen, wenn du magst – Frühlingsluft konserviert gute Laune erstaunlich gut.',
+  sommer:'Ein grüner Tag. Halt kurz fest, was heute gutgetan hat – und wenn es der lange Abend draußen war: Davon gibt es im Sommer Nachschub.',
+  herbst:'Ein grüner Tag. Schreib dir auf, was ihn grün gemacht hat – solche Notizen sind Gold, wenn die Tage kürzer werden.',
+  winter:'Ein grüner Tag mitten im Winter – die zählen doppelt. Was hat gutgetan? Genau das darfst du wiederholen.'};
+const seasonOf = m => (m>=2&&m<=4)?'fruehling':(m>=5&&m<=7)?'sommer':(m>=8&&m<=10)?'herbst':'winter';
 const IMPULSE_FALLBACK = {
   when:c => c.e.gefuehle==='g',
   t:'Läuft bei dir',
-  x:'Ein grüner Tag. Halt kurz fest, was heute gutgetan hat – genau das darfst du wiederholen.'};
+  x:c => FALLBACK_SEASONS[seasonOf(c.month)]};
 
 function computeImpulses(){
   const v=(off,id)=>{const e=S.entries[offsetKey(viewDate,off)]; return e?e[id]:undefined};
   const count=(n,id,pred)=>{let c=0; for(let i=0;i<n;i++){if(pred(v(-i,id)))c++} return c};
-  const ctx={e:S.entries[viewDate]||{}, v, count};
+  const ctx={e:S.entries[viewDate]||{}, v, count,
+    isToday:viewDate===todayKey(),
+    month:parseKey(viewDate).getMonth(),
+    cycle:cycleInfo()};
   const out=IMPULSE_RULES.filter(r=>r.when(ctx));
   if(out.length===0 && IMPULSE_FALLBACK.when(ctx)) out.push(IMPULSE_FALLBACK);
-  return out.slice(0,2);
+  /* x darf Text oder Funktion (saisonale Varianten) sein */
+  return out.slice(0,2).map(r=>({t:r.t, x:typeof r.x==='function'?r.x(ctx):r.x}));
 }
 function renderImpulses(){
   const w=$('#impulseWrap'); w.innerHTML='';
@@ -929,14 +1279,27 @@ function monthSummary(y,m){
   return {dm,logged,gruen,gelb,rot,notes};
 }
 
-let mrMonth=null, mrDraft={};
+function yearSummary(y){
+  let logged=0,g=0,ye=0,r=0,notes=0;
+  for(const [k,e] of Object.entries(S.entries)){
+    if(+k.slice(0,4)!==y || !e) continue;
+    logged++;
+    if(e.gefuehle==='g')g++; else if(e.gefuehle==='y')ye++; else if(e.gefuehle==='r')r++;
+    if(e.note)notes++;
+  }
+  return {logged,g,ye,r,notes};
+}
+
+/* Das Overlay trägt Monats- UND Jahresreviews (mrKind), manuell geöffnet
+   (Nachtragen/Bearbeiten) oder automatisch erfragt. */
+let mrKind='month', mrKey=null, mrManual=false, mrDraft={};
 function renderMrScale(){
   const w=$('#mrScale'); w.innerHTML='';
   ['g','y','r'].forEach(v=>{
     const col=document.createElement('div');
     col.style.cssText='display:flex;flex-direction:column;align-items:center;gap:5px';
-    col.innerHTML=`<button class="scale-btn${mrDraft.gefuehl===v?' sel':''}" data-v="${v}" aria-label="Monat insgesamt: ${SCALE_NAMES[v]}">
-        <i class="sw${mrDraft.gefuehl===v?' draw':''}" style="--c:${SCALE_COLOR[v]};--r:${rot(mrMonth+'review'+v)}"></i>
+    col.innerHTML=`<button class="scale-btn${mrDraft.gefuehl===v?' sel':''}" data-v="${v}" aria-label="Insgesamt: ${SCALE_NAMES[v]}">
+        <i class="sw${mrDraft.gefuehl===v?' draw':''}" style="--c:${SCALE_COLOR[v]};--r:${rot(mrKey+'review'+v)}"></i>
       </button><small>${SCALE_NAMES[v]}</small>`;
     col.querySelector('button').addEventListener('click',()=>{
       mrDraft.gefuehl = (mrDraft.gefuehl===v)? undefined : v;
@@ -946,18 +1309,46 @@ function renderMrScale(){
     w.appendChild(col);
   });
 }
-function openMonthReview(mk){
-  mrMonth=mk; mrDraft={};
-  const [y,m]=mk.split('-').map(Number);
-  $('#mrTitle').textContent = MONTHS[m-1]+' '+y;
-  $('#mrIntro').textContent = 'Heute ist der letzte Tag im '+MONTHS[m-1]+
-    ' – gleich blättere ich die Seite um. Schau mit mir kurz zurück: ein Tipp, vielleicht ein Satz. Ganz ohne Druck.';
-  const s=monthSummary(y,m-1);
-  $('#mrStats').innerHTML =
-    `<b>${s.logged}</b> von ${s.dm} Tagen festgehalten<br>`+
-    `<b>${s.gruen}</b>× grün · <b>${s.gelb}</b>× gelb · <b>${s.rot}</b>× rot gefühlt`+
-    (s.notes?`<br><b>${s.notes}</b> ${s.notes===1?'Notiz':'Notizen'} geschrieben`:'');
-  $('#mrNote').value='';
+function openReview(kind,key,manual){
+  mrKind=kind; mrKey=key; mrManual=!!manual; mrDraft={};
+  const ex=S.reviews[key];
+  if(ex && ex.gefuehl) mrDraft.gefuehl=ex.gefuehl;
+  const word = kind==='year'?'Jahr':'Monat';
+  $('#mrEyebrow').textContent = kind==='year'?'Jahresreview':'Monatsreview';
+  $('#mrStatsQ').textContent = kind==='year'?'Dein Jahr in Zahlen':'Dein Monat in Zahlen';
+  $('#mrScaleQ').textContent = 'Wie war '+(kind==='year'?'dieses Jahr':'dieser Monat')+' insgesamt?';
+  $('#mrNoteQ').innerHTML = 'Was bleibt dir von diesem '+word+'? <small style="text-transform:none;letter-spacing:0">(optional)</small>';
+  $('#mrSkip').textContent = manual?'Abbrechen':'Heute nicht';
+  if(kind==='month'){
+    const [y,m]=key.split('-').map(Number);
+    $('#mrTitle').textContent = MONTHS[m-1]+' '+y;
+    const now=new Date();
+    const live = key===monthKeyOf(now) && isLastDayOfMonth(now);
+    $('#mrIntro').textContent = manual
+      ? 'Dein Review für den '+MONTHS[m-1]+' – du kannst es jederzeit ergänzen oder ändern. Ein Tipp, vielleicht ein Satz.'
+      : live
+        ? 'Heute ist der letzte Tag im '+MONTHS[m-1]+' – gleich blättere ich die Seite um. Schau mit mir kurz zurück: ein Tipp, vielleicht ein Satz. Ganz ohne Druck.'
+        : 'Der '+MONTHS[m-1]+' ist schon umgeblättert, aber sein Review fehlt noch. Magst du kurz zurückschauen? Ein Tipp genügt.';
+    const s=monthSummary(y,m-1);
+    $('#mrStats').innerHTML =
+      `<b>${s.logged}</b> von ${s.dm} Tagen festgehalten<br>`+
+      `<b>${s.gruen}</b>× grün · <b>${s.gelb}</b>× gelb · <b>${s.rot}</b>× rot gefühlt`+
+      (s.notes?`<br><b>${s.notes}</b> ${s.notes===1?'Notiz':'Notizen'} geschrieben`:'');
+  }else{
+    const y=+key;
+    $('#mrTitle').textContent = String(y);
+    $('#mrIntro').textContent = manual
+      ? 'Dein Review für '+y+' – du kannst es jederzeit ergänzen oder ändern. Ein Tipp, vielleicht ein Satz.'
+      : (new Date().getFullYear()===y
+        ? 'Heute ist der letzte Tag des Jahres – deine Seite ist fertig gemalt. Schau mit mir einmal über das ganze Bild: ein Tipp, vielleicht ein Satz.'
+        : 'Das Jahr '+y+' ist umgeblättert, aber sein Review fehlt noch. Magst du einmal über das ganze Bild schauen?');
+    const s=yearSummary(y);
+    $('#mrStats').innerHTML =
+      `<b>${s.logged}</b> Tage festgehalten<br>`+
+      `<b>${s.g}</b>× grün · <b>${s.ye}</b>× gelb · <b>${s.r}</b>× rot gefühlt`+
+      (s.notes?`<br><b>${s.notes}</b> ${s.notes===1?'Notiz':'Notizen'} geschrieben`:'');
+  }
+  $('#mrNote').value = ex && ex.note ? ex.note : '';
   renderMrScale();
   $('#monthReview').classList.add('active');
 }
@@ -969,40 +1360,65 @@ $('#mrSave').addEventListener('click',()=>{
   const r={createdAt:new Date().toISOString()};
   if(mrDraft.gefuehl) r.gefuehl=mrDraft.gefuehl;
   if(note) r.note=note.slice(0,2000);
-  S.reviews[mrMonth]=r;
-  S.profile.lastReviewPrompt=mrMonth;
+  S.reviews[mrKey]=r;
+  if(!mrManual){
+    if(mrKind==='month') S.profile.lastReviewPrompt=mrKey;
+    else S.profile.lastYearReviewPrompt=mrKey;
+  }
   save(); buzz(12);
   closeMonthReview();
   renderActive();
-  toast('Monatsreview festgehalten');
+  toast(mrKind==='year'?'Jahresreview festgehalten':'Monatsreview festgehalten');
 });
 $('#mrSkip').addEventListener('click',()=>{
-  S.profile.lastReviewPrompt=mrMonth; save();
+  if(!mrManual){
+    if(mrKind==='month') S.profile.lastReviewPrompt=mrKey;
+    else S.profile.lastYearReviewPrompt=mrKey;
+    save();
+  }
   closeMonthReview();
-  toast('Alles gut – dein Monat wartet im Raster');
+  toast(mrManual?'Alles gut':'Alles gut – dein Raster wartet');
 });
 
-function maybeMonthReview(){
+/* Automatisch fragen: Jahresreview am 31.12. (Nachholen 1.–7. Januar),
+   Monatsreview am letzten Tag (Nachholen 1.–7. des Folgemonats).
+   Pro App-Start höchstens ein Overlay, und nur wenn der Zeitraum Einträge hat. */
+function maybeReviews(){
   if(!S.profile.onboarded) return;
-  const now=new Date();
-  if(!isLastDayOfMonth(now)) return;
-  const mk=monthKeyOf(now);
-  if(S.reviews[mk] || S.profile.lastReviewPrompt===mk) return;
-  openMonthReview(mk);
+  const now=new Date(); const y=now.getFullYear(), m=now.getMonth(), day=now.getDate();
+  let yk=null;
+  if(m===11 && day===31) yk=String(y);
+  else if(m===0 && day<=7) yk=String(y-1);
+  if(yk && !S.reviews[yk] && S.profile.lastYearReviewPrompt!==yk && yearSummary(+yk).logged>0){
+    openReview('year',yk,false); return;
+  }
+  let mk=null;
+  if(isLastDayOfMonth(now)) mk=monthKeyOf(now);
+  else if(day<=7) mk=monthKeyOf(new Date(y,m-1,1));
+  if(mk && !S.reviews[mk] && S.profile.lastReviewPrompt!==mk){
+    const [my,mm]=mk.split('-').map(Number);
+    if(monthSummary(my,mm-1).logged>0) openReview('month',mk,false);
+  }
 }
 
-/* Gespeichertes Review in der Monatsansicht anzeigen */
+/* Gespeichertes Review in der Monatsansicht anzeigen – plus Bearbeiten/Nachtragen */
 function renderMonthReviewCard(){
   const {y,m}=monthCursor;
   const mk=y+'-'+pad(m+1);
   const r=S.reviews[mk];
   const card=$('#monthReviewCard');
-  if(!r){ card.style.display='none'; return }
+  const now=new Date();
+  const isPast = y<now.getFullYear() || (y===now.getFullYear() && m<now.getMonth());
+  if(!r && !isPast){ card.style.display='none'; return }
   card.style.display='block';
-  $('#monthReviewBody').innerHTML =
-    (r.gefuehl?`<span class="chip sel" style="pointer-events:none;min-height:36px;font-size:14px">
-      <i class="sw" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(mk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span>`:'')+
-    (r.note?`<p style="font-size:14px;line-height:1.5;font-style:italic;margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'');
+  $('#monthReviewBody').innerHTML = r
+    ? (r.gefuehl?`<span class="chip sel" style="pointer-events:none;min-height:36px;font-size:14px">
+        <i class="sw" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(mk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span>`:'')+
+      (r.note?`<p style="font-size:14px;line-height:1.5;font-style:italic;margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'')+
+      `<button class="btn small line" data-mr-edit style="margin-top:12px">Bearbeiten</button>`
+    : `<p class="hint" style="margin-top:0">Für diesen Monat gibt es noch kein Review.</p>
+       <button class="btn small line" data-mr-edit style="margin-top:10px">Review nachtragen</button>`;
+  card.querySelector('[data-mr-edit]').addEventListener('click',()=>openReview('month',mk,true));
 }
 
 /* ═══════════════════════ MONAT ═══════════════════════ */
@@ -1015,10 +1431,12 @@ function renderMonth(){
   const tk=todayKey(); const tkParts=tk.split('-');
   const isThisMonth = (+tkParts[0]===y && +tkParts[1]===m+1);
 
+  g.style.gridTemplateRows='42px';
   g.insertAdjacentHTML('beforeend','<div class="g-corner"></div>');
   for(let d=1;d<=days;d++){
     const today = isThisMonth && +tkParts[2]===d;
-    g.insertAdjacentHTML('beforeend',`<div class="g-day${today?' today':''}">${d}</div>`);
+    const dow=new Date(y,m,d).getDay(); const we=dow===0||dow===6;
+    g.insertAdjacentHTML('beforeend',`<div class="g-day${today?' today':''}${we?' we':''}">${d}<em>${WD[dow]}</em></div>`);
   }
   activeHabits().forEach(h=>{
     g.insertAdjacentHTML('beforeend',`<div class="g-label"><span>${esc(h.label)}</span></div>`);
@@ -1026,9 +1444,10 @@ function renderMonth(){
       const k=y+'-'+pad(m+1)+'-'+pad(d);
       const e=S.entries[k]; const val=e?e[h.id]:undefined;
       const today = isThisMonth && +tkParts[2]===d;
+      const dow=new Date(y,m,d).getDay(); const we=dow===0||dow===6;
       const future = k>tk;
       const cell=document.createElement('button');
-      cell.className='g-cell'+(today?' today-col':'')+(future?' future':'');
+      cell.className='g-cell'+(we?' we':'')+(today?' today-col':'')+(future?' future':'');
       cell.setAttribute('aria-label',h.label+' am '+d+'. '+MONTHS[m]);
       if(val) cell.innerHTML=`<i class="sw" style="--c:${habitColor(h,val)};--r:${rot(k+h.id)}"></i>`;
       cell.addEventListener('click',()=>{
@@ -1038,6 +1457,11 @@ function renderMonth(){
       g.appendChild(cell);
     }
   });
+  /* Im aktuellen Monat direkt zur Heute-Spalte scrollen */
+  if(isThisMonth){
+    const sc=$('.grid-scroller');
+    sc.scrollLeft=Math.max(0, 30*(+tkParts[2])-(sc.clientWidth-118)/2-15);
+  }
   renderMonthReviewCard();
   renderNoteHistory();
 }
@@ -1070,9 +1494,24 @@ function renderNoteHistory(){
 }
 
 /* ═══════════════════════ JAHR ═══════════════════════ */
+let yearCursor=new Date().getFullYear();
+/* Blätterbar von der ersten Seite (ältester Eintrag bzw. Einrichtung) bis heute */
+function yearSpan(){
+  let min=new Date().getFullYear();
+  const c=new Date(S.profile.createdAt);
+  if(!isNaN(c)) min=Math.min(min, c.getFullYear());
+  for(const k of Object.keys(S.entries)){ const y=+k.slice(0,4); if(y<min) min=y }
+  return {min, max:new Date().getFullYear()};
+}
+$('#prevYear').addEventListener('click',()=>{ if(yearCursor>yearSpan().min){yearCursor--; renderYear()} });
+$('#nextYear').addEventListener('click',()=>{ if(yearCursor<yearSpan().max){yearCursor++; renderYear()} });
+
 function renderYear(){
-  const y=new Date().getFullYear();
+  const y=yearCursor;
+  const span=yearSpan();
   $('#yearTitle').textContent=y;
+  $('#prevYear').style.visibility = y>span.min?'visible':'hidden';
+  $('#nextYear').style.visibility = y<span.max?'visible':'hidden';
   const g=$('#yearGrid'); g.innerHTML='';
   'JFMAMJJASOND'.split('').forEach(c=>g.insertAdjacentHTML('beforeend',`<div class="y-head">${c}</div>`));
   for(let d=1;d<=31;d++){
@@ -1084,15 +1523,90 @@ function renderYear(){
       g.insertAdjacentHTML('beforeend',`<div class="${cls}"></div>`);
     }
   }
-  // Monats-Stats (aktueller Kalendermonat)
-  const now=new Date(); const mm=now.getMonth(), yy=now.getFullYear();
-  const dm=new Date(yy,mm+1,0).getDate();
-  let logged=0,sport=0,soz=0,gruen=0;
-  for(let d=1;d<=dm;d++){const e=S.entries[yy+'-'+pad(mm+1)+'-'+pad(d)];
-    if(e){logged++; if(e.sport)sport++; if(e.soziales)soz++; if(e.gefuehle==='g')gruen++}}
-  $('#monthStats').innerHTML=
-    `<b>${logged}</b> Tage festgehalten · <b>${gruen}</b>× grün gefühlt<br>`+
-    `<b>${sport}</b>× Sport · <b>${soz}</b>× soziale Kontakte`;
+  renderYearStats();
+  renderYearReviewCard();
+  renderCorrelations();
+}
+
+/* Statistik ehrlich aus den aktiven Themen – nichts mehr hart verdrahtet */
+function renderYearStats(){
+  const now=new Date();
+  if(yearCursor===now.getFullYear()){
+    $('#yearStatsQ').textContent='Dieser Monat in Zahlen';
+    const yy=now.getFullYear(), mm=now.getMonth();
+    const dm=new Date(yy,mm+1,0).getDate();
+    const checks=activeHabits().filter(h=>h.type==='check');
+    const counts={}; let logged=0,gruen=0;
+    for(let d=1;d<=dm;d++){
+      const e=S.entries[yy+'-'+pad(mm+1)+'-'+pad(d)]; if(!e) continue;
+      logged++;
+      if(e.gefuehle==='g')gruen++;
+      for(const h of checks) if(e[h.id]) counts[h.id]=(counts[h.id]||0)+1;
+    }
+    const top=checks.filter(h=>counts[h.id]).sort((a,b)=>counts[b.id]-counts[a.id]).slice(0,3);
+    $('#monthStats').innerHTML=
+      `<b>${logged}</b> Tage festgehalten · <b>${gruen}</b>× grün gefühlt`+
+      (top.length?'<br>'+top.map(h=>`<b>${counts[h.id]}</b>× ${esc(h.label)}`).join(' · '):'');
+  }else{
+    $('#yearStatsQ').textContent=yearCursor+' in Zahlen';
+    const s=yearSummary(yearCursor);
+    $('#monthStats').innerHTML=
+      `<b>${s.logged}</b> Tage festgehalten<br>`+
+      `<b>${s.g}</b>× grün · <b>${s.ye}</b>× gelb · <b>${s.r}</b>× rot gefühlt`+
+      (s.notes?` · <b>${s.notes}</b> ${s.notes===1?'Notiz':'Notizen'}`:'');
+  }
+}
+
+function renderYearReviewCard(){
+  const yk=String(yearCursor);
+  const r=S.reviews[yk];
+  const card=$('#yearReviewCard');
+  const isPast = yearCursor < new Date().getFullYear();
+  if(!r && !isPast){ card.style.display='none'; return }
+  card.style.display='block';
+  $('#yearReviewBody').innerHTML = r
+    ? (r.gefuehl?`<span class="chip sel" style="pointer-events:none;min-height:36px;font-size:14px">
+        <i class="sw" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(yk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span>`:'')+
+      (r.note?`<p style="font-size:14px;line-height:1.5;font-style:italic;margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'')+
+      `<button class="btn small line" data-yr-edit style="margin-top:12px">Bearbeiten</button>`
+    : `<p class="hint" style="margin-top:0">Für ${yearCursor} gibt es noch kein Review.</p>
+       <button class="btn small line" data-yr-edit style="margin-top:10px">Review nachtragen</button>`;
+  card.querySelector('[data-yr-edit]').addEventListener('click',()=>openReview('year',yk,true));
+}
+
+/* ═══════════════════════ KORRELATIONS-KARTEN ═══════════════════════ */
+/* Gleiche-Tag-Zusammenhänge zwischen Häkchen-Themen und Ampel-Themen.
+   Bewusst konservativ: erst ab 8 Tagen je Gruppe und ≥18 Punkten Abstand,
+   und im Text immer als Muster, nie als Ursache formuliert. */
+function correlations(){
+  const scales=activeHabits().filter(h=>h.type==='scale');
+  const checks=activeHabits().filter(h=>h.type==='check');
+  const out=[];
+  for(const s of scales) for(const c of checks){
+    let tG=0,tN=0,fG=0,fN=0;
+    for(const e of Object.values(S.entries)){
+      const sv=e[s.id]; if(sv!=='g'&&sv!=='y'&&sv!=='r') continue;
+      if(e[c.id]){ tN++; if(sv==='g')tG++ }
+      else       { fN++; if(sv==='g')fG++ }
+    }
+    if(tN<8 || fN<8) continue;
+    const pT=tG/tN, pF=fG/fN;
+    if(Math.abs(pT-pF)>=0.18) out.push({scale:s, check:c, pT, pF, diff:pT-pF});
+  }
+  return out.sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff)).slice(0,3);
+}
+function renderCorrelations(){
+  const card=$('#correlationCard');
+  const found=correlations();
+  if(!found.length){ card.style.display='none'; return }
+  card.style.display='block';
+  $('#correlationBody').innerHTML=found.map(f=>{
+    const pT=Math.round(f.pT*100), pF=Math.round(f.pF*100);
+    const dir=f.diff>0?'häufiger':'seltener';
+    return `<p style="font-size:14px;line-height:1.55;margin-top:8px">
+      An Tagen mit <b>${esc(f.check.label)}</b> ist „${esc(f.scale.label)}" bei dir ${dir} grün –
+      <b>${pT} %</b> statt ${pF} %.</p>`;
+  }).join('');
 }
 
 /* ═══════════════════════ MEHR ═══════════════════════ */
@@ -1106,7 +1620,47 @@ function renderMore(){
     : 'Noch nie gesichert';
   renderHabitManager();
   renderColorDots();
+  renderThemePicker();
+  const ps=$('#pinSwitch');
+  ps.classList.toggle('on', !!S.settings.pin);
+  ps.setAttribute('aria-checked', !!S.settings.pin);
 }
+
+function renderThemePicker(){
+  const w=$('#themePicker'); w.innerHTML='';
+  THEMES.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='chip'+(S.settings.theme===t.id?' sel':'');
+    b.innerHTML=`<span class="theme-dot" style="background:${t.paper}"></span>${t.name}`;
+    b.addEventListener('click',()=>{
+      S.settings.theme=t.id; save();
+      applyTheme(t.id); buzz();
+      renderThemePicker();
+    });
+    w.appendChild(b);
+  });
+}
+
+$('#pinSwitch').addEventListener('click',async()=>{
+  if(S.settings.pin){
+    const cur=await fridaPrompt({title:'PIN-Sperre ausschalten',
+      msg:'Gib einmal deine aktuelle PIN ein.', numeric:true, maxlength:4, ok:'Ausschalten'});
+    if(cur===null) return;
+    if(pinHash(cur)!==S.settings.pin){ toast('Das war nicht die richtige PIN'); return }
+    S.settings.pin=null; save(); renderMore(); toast('PIN-Sperre ist aus');
+  }else{
+    const p1=await fridaPrompt({title:'PIN festlegen',
+      msg:'Vier Ziffern – die brauchst du ab jetzt beim Öffnen.\nWichtig: Ohne PIN komme auch ich nicht mehr rein. Deine Daten bleiben dabei unverändert auf dem Gerät.',
+      numeric:true, maxlength:4, ok:'Weiter'});
+    if(p1===null) return;
+    if(!/^\d{4}$/.test(p1)){ toast('Bitte genau vier Ziffern'); return }
+    const p2=await fridaPrompt({title:'Einmal noch',
+      msg:'Zur Sicherheit: dieselbe PIN noch einmal.', numeric:true, maxlength:4, ok:'Einschalten'});
+    if(p2===null) return;
+    if(p1!==p2){ toast('Die beiden PINs waren verschieden'); return }
+    S.settings.pin=pinHash(p1); save(); renderMore(); toast('PIN-Sperre ist an');
+  }
+});
 
 function renderHabitManager(){
   const hm=$('#habitManager'); hm.innerHTML='';
@@ -1139,15 +1693,19 @@ function renderHabitManager(){
       $$('#habitManager .habit-actions').forEach(x=>x.classList.remove('open'));
       a.classList.toggle('open', !open);
     });
-    item.querySelector('[data-act="rename"]').addEventListener('click',()=>{
-      const name=prompt('Neuer Name für „'+h.label+'":', h.label);
+    item.querySelector('[data-act="rename"]').addEventListener('click',async()=>{
+      const name=await fridaPrompt({title:'Umbenennen',
+        msg:'Neuer Name für „'+h.label+'":', value:h.label, maxlength:40, ok:'Speichern'});
       if(name===null) return;
       const clean=name.trim().slice(0,40);
       if(!clean){ toast('Name darf nicht leer sein'); return }
       h.label=clean; save(); renderHabitManager(); toast('Umbenannt');
     });
-    item.querySelector('[data-act="delete"]').addEventListener('click',()=>{
-      if(!confirm('„'+h.label+'" löschen?\nBisherige Markierungen bleiben im Backup erhalten, werden aber nicht mehr angezeigt.')) return;
+    item.querySelector('[data-act="delete"]').addEventListener('click',async()=>{
+      const ok=await fridaConfirm({title:'„'+h.label+'" löschen?',
+        msg:'Bisherige Markierungen bleiben im Backup erhalten, werden aber nicht mehr angezeigt.',
+        ok:'Löschen', danger:true});
+      if(!ok) return;
       S.habits=S.habits.filter(x=>x.id!==h.id); save(); renderHabitManager(); toast('Gelöscht');
     });
     attachDrag(item);
@@ -1205,11 +1763,13 @@ $('#addHabit').addEventListener('click',()=>{
   save(); $('#newHabitLabel').value=''; renderMore(); toast('„'+label+'" hinzugefügt');
 });
 $('#profileName').addEventListener('change',e=>{S.profile.name=e.target.value.trim().slice(0,30); save(); toast('Gespeichert')});
-$('#resetBtn').addEventListener('click',()=>{
-  if(confirm('Wirklich alles löschen? Das kann nicht rückgängig gemacht werden.\nTipp: Vorher einmal „Backup sichern".')){
-    try{localStorage.removeItem(KEY)}catch(e){}
-    S=defaultState(); location.reload();
-  }
+$('#resetBtn').addEventListener('click',async()=>{
+  const ok=await fridaConfirm({title:'Wirklich alles löschen?',
+    msg:'Das kann nicht rückgängig gemacht werden.\nTipp: Vorher einmal „Backup sichern".',
+    ok:'Alles löschen', danger:true});
+  if(!ok) return;
+  try{localStorage.removeItem(KEY)}catch(e){}
+  S=defaultState(); location.reload();
 });
 
 /* ═══════════════════════ BACKUP ═══════════════════════ */
@@ -1219,31 +1779,40 @@ function markExported(){
   if(activeTab==='more') renderMore();
 }
 async function doExport(){
-  const json=JSON.stringify(S,null,2);
-  const name='frida-backup-'+todayKey()+'.json';
-  /* iOS-Home-Screen-Apps behandeln <a download> unzuverlässig – dort ist das
-     Teilen-Blatt (in „Dateien sichern") der stabile Weg. Desktop lädt klassisch. */
-  try{
-    const file=new File([json],name,{type:'application/json'});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:'Frida-Backup'});
-      markExported(); return;
-    }
-  }catch(e){
-    if(e && e.name==='AbortError') return;   /* bewusst abgebrochen – nichts markieren */
-    /* sonst: weiter zum Download-Fallback */
-  }
-  const blob=new Blob([json],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  markExported();
+  const ok=await shareOrDownload('frida-backup-'+todayKey()+'.json','application/json',JSON.stringify(S,null,2));
+  if(ok) markExported();   /* Abbruch im Teilen-Blatt zählt nicht als Backup */
 }
 $('#exportBtn').addEventListener('click',doExport);
 $('#bannerExport').addEventListener('click',doExport);
 $('#importBtn').addEventListener('click',()=>$('#importFile').click());
+
+/* CSV zusätzlich zu JSON – Tabelle für Excel/Numbers, ersetzt kein Backup
+   (Reviews und Einstellungen stecken nur im JSON). */
+function csvField(v){
+  let s=String(v);
+  if(/^[=+\-@]/.test(s)) s="'"+s;          /* Formel-Injection in Tabellenkalkulationen entschärfen */
+  if(/[";\n]/.test(s)) s='"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+async function doCsvExport(){
+  const habits=[...S.habits].sort((a,b)=>a.order-b.order);
+  const rows=[['Datum','Wochentag',...habits.map(h=>h.label),'Notiz'].map(csvField).join(';')];
+  Object.keys(S.entries).sort().forEach(k=>{
+    const e=S.entries[k]; const d=parseKey(k);
+    const cells=[k, WD[d.getDay()]];
+    habits.forEach(h=>{
+      const v=e[h.id];
+      cells.push(v===true?'ja':v==='g'?'gut':v==='y'?'mittel':v==='r'?'schwer':'');
+    });
+    cells.push(e.note||'');
+    rows.push(cells.map(csvField).join(';'));
+  });
+  if(rows.length===1){ toast('Noch keine Einträge zum Exportieren'); return }
+  /* BOM, damit Excel die Umlaute richtig liest */
+  const ok=await shareOrDownload('frida-export-'+todayKey()+'.csv','text/csv','\uFEFF'+rows.join('\n'));
+  if(ok) toast('CSV exportiert');
+}
+$('#csvBtn').addEventListener('click',doCsvExport);
 
 /* Import: nie blind übernehmen – Struktur prüfen, Felder normalisieren, Rest verwerfen */
 function sanitizeImport(d){
@@ -1256,6 +1825,11 @@ function sanitizeImport(d){
   if(typeof d.profile.createdAt==='string') st.profile.createdAt=d.profile.createdAt;
   st.profile.lastExport = typeof d.profile.lastExport==='string' ? d.profile.lastExport : null;
   st.profile.lastReviewPrompt = typeof d.profile.lastReviewPrompt==='string' ? d.profile.lastReviewPrompt : null;
+  st.profile.lastYearReviewPrompt = typeof d.profile.lastYearReviewPrompt==='string' ? d.profile.lastYearReviewPrompt : null;
+  if(d.settings && typeof d.settings==='object'){
+    st.settings.theme = ['klassik','rose','nacht'].includes(d.settings.theme) ? d.settings.theme : 'klassik';
+    st.settings.pin = (typeof d.settings.pin==='string' && /^\d{1,20}$/.test(d.settings.pin)) ? d.settings.pin : null;
+  }
   const habits=d.habits
     .filter(h=>h && typeof h.id==='string' && typeof h.label==='string' && h.label.trim())
     .map((h,i)=>({id:h.id.slice(0,60), label:h.label.trim().slice(0,40),
@@ -1276,7 +1850,8 @@ function sanitizeImport(d){
     if(Object.keys(e).length) st.entries[k]=e;
   }
   if(d.reviews && typeof d.reviews==='object'){
-    const mRe=/^\d{4}-(0[1-9]|1[0-2])$/;
+    /* Monats-Keys (YYYY-MM) und Jahres-Keys (YYYY) */
+    const mRe=/^\d{4}(-(0[1-9]|1[0-2]))?$/;
     for(const [k,v] of Object.entries(d.reviews)){
       if(!mRe.test(k) || !v || typeof v!=='object') continue;
       const r={};
@@ -1293,7 +1868,7 @@ function sanitizeImport(d){
 $('#importFile').addEventListener('change',ev=>{
   const f=ev.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=()=>{
+  r.onload=async()=>{
     let st;
     try{ st=sanitizeImport(JSON.parse(r.result)) }
     catch(e){
@@ -1302,8 +1877,10 @@ $('#importFile').addEventListener('change',ev=>{
         : 'Datei nicht lesbar – ist das ein Frida-Backup?');
       return;
     }
-    if(!confirm('Backup importieren? Deine aktuellen Daten werden ersetzt.')) return;
-    S=st; save(); toast('Backup importiert');
+    const ok=await fridaConfirm({title:'Backup importieren?',
+      msg:'Deine aktuellen Daten werden ersetzt.', ok:'Importieren'});
+    if(!ok) return;
+    S=st; save(); applyTheme(S.settings.theme); toast('Backup importiert');
     if(S.profile.onboarded) switchTab('today');
     else { renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
   };
@@ -1360,6 +1937,166 @@ function playWelcome(){
   }, 2400);
 }
 
+/* ═══════════════════════ NOTIZ-SUCHE ═══════════════════════ */
+let nsTimer=null;
+$('#noteSearch').addEventListener('input',()=>{ clearTimeout(nsTimer); nsTimer=setTimeout(renderNoteSearch,250) });
+function renderNoteSearch(){
+  const q=$('#noteSearch').value.trim().toLowerCase();
+  const list=$('#noteSearchResults'); list.innerHTML='';
+  if(q.length<2) return;
+  const hits=Object.keys(S.entries)
+    .filter(k=>{const n=S.entries[k].note; return n && n.toLowerCase().includes(q)})
+    .sort().reverse().slice(0,50);
+  if(!hits.length){ list.innerHTML='<p class="hint" style="margin-top:10px">Dazu habe ich nichts gemalt – anderes Wort?</p>'; return }
+  hits.forEach(k=>{
+    const e=S.entries[k]; const d=parseKey(k);
+    const c=e.gefuehle?SCALE_COLOR[e.gefuehle]:'var(--ink-soft)';
+    const row=document.createElement('button'); row.className='note-item'; row.style.width='100%';
+    row.setAttribute('aria-label','Notiz vom '+d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear());
+    row.innerHTML=`<span class="nd"><small>${MONTHS[d.getMonth()].slice(0,3)}</small><b>${d.getDate()}.</b></span>
+      <i class="sw" style="--c:${c};--r:${rot(k)}"></i>
+      <span class="nt">„${esc(e.note)}"<br><small style="font-style:normal;color:var(--ink-soft)">${d.getFullYear()}</small></span>`;
+    row.addEventListener('click',()=>{viewDate=k; switchTab('today')});
+    list.appendChild(row);
+  });
+}
+
+/* ═══════════════════════ TEILBARE BILDER (Canvas) ═══════════════════════ */
+/* Woche und Jahr als PNG im Papier-Look – ohne Notizen, ohne Namen.
+   Farben kommen aus den CSS-Tokens, folgen also dem gewählten Theme. */
+function canvasMarkerColor(h,v){
+  if(h.type==='scale') return cssColor(v==='g'?'--m-green':v==='y'?'--m-yellow':'--m-red');
+  return cssColor('--m-'+h.color);
+}
+function paintPaper(ctx,W,H){
+  ctx.fillStyle=cssColor('--paper'); ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=cssColor('--dot')||'rgba(69,60,49,.10)';
+  for(let x=22;x<W;x+=44) for(let y=22;y<H;y+=44){ ctx.beginPath(); ctx.arc(x,y,2,0,7); ctx.fill() }
+}
+/* Unregelmäßig gerundeter Klecks – das Canvas-Pendant zum Filzstift-Swatch */
+function paintBlob(ctx,x,y,w,h,seed){
+  const j=n=>((hashStr(seed+n)%9)-4)*1.2;
+  const r=Math.min(w,h)*.42, hw=w/2, hh=h/2;
+  ctx.save();
+  ctx.translate(x+w/2, y+h/2);
+  ctx.rotate(((hashStr(seed)%13)-6)*Math.PI/180);
+  ctx.beginPath();
+  ctx.moveTo(-hw+r,-hh);
+  ctx.lineTo(hw-r,-hh);
+  ctx.quadraticCurveTo(hw+j(1),-hh+j(2), hw,-hh+r);
+  ctx.lineTo(hw,hh-r);
+  ctx.quadraticCurveTo(hw+j(3),hh+j(4), hw-r,hh);
+  ctx.lineTo(-hw+r,hh);
+  ctx.quadraticCurveTo(-hw+j(5),hh+j(6), -hw,hh-r);
+  ctx.lineTo(-hw,-hh+r);
+  ctx.quadraticCurveTo(-hw+j(7),-hh+j(8), -hw+r,-hh);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+const CANVAS_HAND='"Noteworthy","Bradley Hand","Segoe Print","Comic Sans MS",cursive';
+const CANVAS_UI='-apple-system,"Helvetica Neue",Arial,sans-serif';
+
+function buildWeekCanvas(){
+  const W=1080,H=1080;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const ctx=c.getContext('2d');
+  paintPaper(ctx,W,H);
+  const ink=cssColor('--ink'), soft=cssColor('--ink-soft'), line=cssColor('--line');
+  const tk=todayKey();
+  const days=[]; for(let o=-6;o<=0;o++) days.push(offsetKey(tk,o));
+  const d0=parseKey(days[0]), d6=parseKey(days[6]);
+  ctx.fillStyle=ink; ctx.font='700 72px '+CANVAS_HAND;
+  ctx.fillText('Meine Woche',70,128);
+  ctx.fillStyle=soft; ctx.font='600 32px '+CANVAS_UI;
+  const range=d0.getDate()+'. '+(d0.getMonth()!==d6.getMonth()?MONTHS[d0.getMonth()]+' ':'')+
+    '– '+d6.getDate()+'. '+MONTHS[d6.getMonth()]+' '+d6.getFullYear();
+  ctx.fillText(range,72,178);
+  const habits=activeHabits().slice(0,12);
+  const top=290, left=70, labelW=300;
+  const colW=(W-140-labelW)/7;
+  const rowH=Math.min(64,(H-top-110)/Math.max(habits.length,1));
+  ctx.textAlign='center';
+  days.forEach((k,i)=>{
+    const d=parseKey(k);
+    const x=left+labelW+i*colW+colW/2;
+    ctx.fillStyle=soft; ctx.font='700 24px '+CANVAS_UI;
+    ctx.fillText(WD[d.getDay()].toUpperCase(),x,top-52);
+    ctx.fillStyle=ink; ctx.font='700 32px '+CANVAS_HAND;
+    ctx.fillText(String(d.getDate()),x,top-16);
+  });
+  ctx.textAlign='left';
+  habits.forEach((h,ri)=>{
+    const y=top+ri*rowH;
+    if(ri>0){
+      ctx.strokeStyle=line; ctx.lineWidth=1; ctx.setLineDash([2,7]);
+      ctx.beginPath(); ctx.moveTo(left,y); ctx.lineTo(W-70,y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.fillStyle=ink; ctx.font='400 30px '+CANVAS_HAND;
+    let lb=h.label;
+    while(ctx.measureText(lb).width>labelW-30 && lb.length>2) lb=lb.slice(0,-1);
+    if(lb!==h.label) lb=lb.trimEnd()+'…';
+    ctx.fillText(lb,left,y+rowH/2+11);
+    days.forEach((k,i)=>{
+      const e=S.entries[k]; const v=e?e[h.id]:undefined; if(!v) return;
+      ctx.fillStyle=canvasMarkerColor(h,v);
+      const w=Math.min(colW*.6,58), hh=w*.76;
+      paintBlob(ctx,left+labelW+i*colW+(colW-w)/2,y+(rowH-hh)/2,w,hh,k+h.id);
+    });
+  });
+  ctx.fillStyle=soft; ctx.font='700 34px '+CANVAS_HAND; ctx.textAlign='center';
+  ctx.fillText('Frida · dein Jahr in Farbe',W/2,H-52);
+  ctx.textAlign='left';
+  return c;
+}
+
+function buildYearCanvas(y){
+  const W=1080,H=1080;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const ctx=c.getContext('2d');
+  paintPaper(ctx,W,H);
+  const ink=cssColor('--ink'), soft=cssColor('--ink-soft'), empty=cssColor('--paper-deep');
+  ctx.fillStyle=ink; ctx.font='700 72px '+CANVAS_HAND;
+  ctx.fillText(String(y),70,128);
+  ctx.fillStyle=soft; ctx.font='600 32px '+CANVAS_UI;
+  ctx.fillText('mein Jahr in Farbe',72,178);
+  const top=250, left=120, right=70, bottom=150;
+  const colW=(W-left-right)/12, rowHh=(H-top-bottom)/31;
+  ctx.textAlign='center'; ctx.fillStyle=soft; ctx.font='700 26px '+CANVAS_UI;
+  'JFMAMJJASOND'.split('').forEach((ch,m)=>ctx.fillText(ch,left+m*colW+colW/2,top-18));
+  ctx.font='600 20px '+CANVAS_UI;
+  for(let d=1;d<=31;d+=(d===1?4:5)) ctx.fillText(String(d),left-46,top+(d-1)*rowHh+rowHh/2+7);
+  const sc={g:cssColor('--m-green'), y:cssColor('--m-yellow'), r:cssColor('--m-red')};
+  const cw=Math.min(colW*.72,rowHh*2.6), chh=rowHh*.72;
+  for(let d=1;d<=31;d++){
+    for(let m=0;m<12;m++){
+      if(d>new Date(y,m+1,0).getDate()) continue;
+      const e=S.entries[y+'-'+pad(m+1)+'-'+pad(d)];
+      ctx.fillStyle=(e&&e.gefuehle)?sc[e.gefuehle]:empty;
+      const x=left+m*colW+(colW-cw)/2, yy=top+(d-1)*rowHh+(rowHh-chh)/2;
+      ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(x,yy,cw,chh,5); else ctx.rect(x,yy,cw,chh);
+      ctx.fill();
+    }
+  }
+  const s=yearSummary(y);
+  ctx.fillStyle=soft; ctx.font='600 28px '+CANVAS_UI;
+  ctx.fillText(s.logged+' Tage festgehalten · '+s.g+'× grün',W/2,H-96);
+  ctx.font='700 34px '+CANVAS_HAND;
+  ctx.fillText('Frida · dein Jahr in Farbe',W/2,H-48);
+  ctx.textAlign='left';
+  return c;
+}
+
+async function shareCanvas(canvas,filename){
+  const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+  if(!blob){ toast('Bild konnte nicht erstellt werden'); return }
+  const ok=await shareOrDownload(filename,'image/png',blob);
+  if(ok) toast('Bild ist unterwegs');
+}
+$('#shareWeekBtn').addEventListener('click',()=>shareCanvas(buildWeekCanvas(),'frida-woche-'+todayKey()+'.png'));
+$('#shareYearBtn').addEventListener('click',()=>shareCanvas(buildYearCanvas(yearCursor),'frida-jahr-'+yearCursor+'.png'));
+
 /* ═══════════════════════ SERVICE WORKER ═══════════════════════ */
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   navigator.serviceWorker.register('sw.js').then(reg=>{
@@ -1389,7 +2126,7 @@ window.addEventListener('load',()=>{
   setTimeout(()=>{
     $('#splash').classList.add('hide');
     if(!S.profile.onboarded){ renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
-    else { switchTab('today'); maybeMonthReview() }
+    else { switchTab('today'); showLock(); maybeReviews() }
   }, 1100);
 });
 </script>
