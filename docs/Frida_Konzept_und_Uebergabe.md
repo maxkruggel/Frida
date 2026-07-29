@@ -3,8 +3,8 @@
 **Name:** Frida („dein Jahr in Farbe")
 Persona-Ansatz: Die App ist eine Begleiterin, keine Software – sie spricht in der Ich-Form („Ich bin Frida. Ich male dein Jahr auf eine Seite."). Die Malerin-Assoziation ist gewollt und trägt die Filzstift-Ästhetik. Perspektivisch kann Frida eine Stimme bekommen (siehe Backlog V2).
 
-**Stand:** 29.07.2026 · **V1.3** (V1 aus dem Chat, V1.1–V1.3 in Claude Code umgesetzt)
-**Dateien:** `index.html` (die App, ehemals `frida.html`) + `sw.js` + `manifest.webmanifest` + Icons. Die App selbst bleibt eine einzige Datei ohne Build und ohne Abhängigkeiten, komplett offline-fähig; Service Worker und Manifest sind bewusste, minimale Ausnahmen für die PWA-Installation.
+**Stand:** 29.07.2026 · **V1.3.1** (V1 aus dem Chat, V1.1–V1.3 in Claude Code umgesetzt)
+**Dateien:** `index.html` (die App, ehemals `frida.html`) + `sw.js` + `manifest.webmanifest` + App-Icons + `favicon.ico`. Die App selbst bleibt eine einzige Datei ohne Build und ohne Abhängigkeiten, komplett offline-fähig; Service Worker und Manifest sind bewusste, minimale Ausnahmen für die PWA-Installation.
 
 ---
 
