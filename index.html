@@ -65,11 +65,13 @@
 
   /* ─────────────────────────  SPLASH  ───────────────────────── */
   #splash{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:14px;background:var(--paper);
+    align-items:center;justify-content:center;gap:14px;text-align:center;
+    padding:0 26px;background:var(--paper);
     background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
     background-size:22px 22px;transition:opacity .45s ease}
   #splash.hide{opacity:0;pointer-events:none}
   #splash h1{font-size:46px}
+  #splash h1.personal{font-size:40px;line-height:1.15;overflow-wrap:anywhere}
   #splash p{color:var(--ink-soft);font-size:14px}
   .splash-dots{display:flex;gap:10px}
   .splash-dots .sw{width:26px;height:20px;opacity:0;animation:pop .4s ease forwards}
@@ -321,13 +323,13 @@
 
 <!-- ═══════════════ SPLASH ═══════════════ -->
 <div id="splash">
-  <h1>Frida</h1>
+  <h1 id="splashTitle">Frida</h1>
   <div class="splash-dots">
     <i class="sw" style="--c:var(--m-green);--r:-6deg"></i>
     <i class="sw" style="--c:var(--m-yellow);--r:4deg"></i>
     <i class="sw" style="--c:var(--m-red);--r:-3deg"></i>
   </div>
-  <p>dein Jahr in Farbe</p>
+  <p id="splashSub">dein Jahr in Farbe</p>
 </div>
 
 <!-- ═══════════════ ONBOARDING ═══════════════ -->
@@ -585,7 +587,7 @@
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -1373,6 +1375,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
 }
 
 /* ═══════════════════════ START ═══════════════════════ */
+/* Splash individualisieren: nach der Einrichtung begrüßt Frida beim Start
+   persönlich nach Tageszeit („Moin, Lena.") – sofort beim Skriptstart gesetzt,
+   damit der generische Titel gar nicht erst aufblitzt. */
+if(S.profile.onboarded){
+  const t=$('#splashTitle');
+  t.textContent=greeting(); t.classList.add('personal');
+  $('#splashSub').textContent='Frida · dein Jahr in Farbe';
+}
 window.addEventListener('load',()=>{
   if(S.profile.onboarded){
     try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist() }catch(e){}
