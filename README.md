@@ -13,6 +13,9 @@ wie es dir ging und was los war. 100 % lokal, kein Konto, kein Abo, keine Streak
 | `icon-180/192/512.png` | App-Icons (180 = Apple Touch Icon) |
 | `favicon.ico` | Browser-Tab-Icon (16/32/48 px, aus dem Marker-Motiv beschnitten) |
 | `docs/Frida_Konzept_und_Uebergabe.md` | Konzept, Datenmodell, Impulse-Engine, Backlog |
+| `docs/Frida_Design_Uebergabe.md` | Design-Übergabe: alle Bereiche, gemessene Befunde, Usability-Anleitung |
+| `docs/screenshots/` | 25 Bereichs-Screenshots (390 × 844) + Vollhöhen-Ansichten + Kontaktbogen |
+| `tools/screenshots/` | Skripte, die die Screenshots reproduzierbar neu erzeugen |
 
 ## Betrieb auf dem iPhone
 
@@ -30,6 +33,19 @@ Doppelklick auf `index.html` genügt (läuft auch über `file://`, der Service W
 wird dann einfach übersprungen). Automatisierter Smoke-Test im iPhone-Viewport (390×844)
 mit Playwright: Onboarding, Check-in, Nachtrag, Monats-/Jahresansicht, Habit-Verwaltung,
 Import-Validierung, Reload-Persistenz.
+
+### Screenshots neu erzeugen
+
+Nach jeder Design-Runde lassen sich alle Bereichs-Screenshots identisch neu aufnehmen –
+gleiche Demo-Daten, gleiche Uhrzeiten, damit die Stände vergleichbar bleiben:
+
+```bash
+npm install --no-save playwright
+tools/screenshots/fonts.sh              # nur ohne „Noteworthy" im System (Linux/CI)
+python3 -m http.server 8765 --bind 127.0.0.1 &
+node tools/screenshots/shoot.js         # → docs/screenshots/
+python3 tools/screenshots/kontaktbogen.py docs/screenshots
+```
 
 Konventionen (siehe Konzeptdokument, Abschnitte 6–8):
 
