@@ -82,6 +82,18 @@
   .sw.draw{animation:draw .28s cubic-bezier(.34,1.4,.6,1)}
   @keyframes draw{0%{transform:scale(.3) rotate(var(--r,0deg))}70%{transform:scale(1.12) rotate(var(--r,0deg))}100%{transform:scale(1) rotate(var(--r,0deg))}}
 
+  /* ─────────  WILLKOMMEN (einmalig nach der Einrichtung)  ───────── */
+  #welcome{position:fixed;inset:0;z-index:55;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;text-align:center;
+    padding:0 26px;background:var(--paper);
+    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-size:22px 22px;transition:opacity .5s ease}
+  #welcome.show{display:flex}
+  #welcome.hide{opacity:0;pointer-events:none}
+  #welcome h1{font-size:40px;line-height:1.15;overflow-wrap:anywhere;
+    opacity:0;animation:pop .5s cubic-bezier(.34,1.4,.6,1) .55s forwards}
+  #welcome p{color:var(--ink-soft);font-size:14px;opacity:0;animation:fadeUp .4s ease 1.05s forwards}
+
   /* ─────────────────────────  ONBOARDING  ───────────────────────── */
   #onboarding{position:fixed;inset:0;z-index:50;background:var(--paper);
     background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
@@ -322,6 +334,7 @@
       <div class="chip-wrap" id="obHabits"></div>
     </div>
     <div class="ob-nav">
+      <button class="btn ghost" data-back>Zurück</button>
       <div class="ob-progress"><i class="on"></i><i class="on"></i><i></i></div>
       <button class="btn berry" data-next>Weiter</button>
     </div>
@@ -340,10 +353,22 @@
       </div>
     </div>
     <div class="ob-nav">
+      <button class="btn ghost" data-back>Zurück</button>
       <div class="ob-progress"><i class="on"></i><i class="on"></i><i class="on"></i></div>
       <button class="btn berry" data-finish>Los geht's</button>
     </div>
   </section>
+</div>
+
+<!-- ═══════════════ WILLKOMMEN (einmalig nach der Einrichtung) ═══════════════ -->
+<div id="welcome" aria-hidden="true">
+  <div class="splash-dots">
+    <i class="sw" style="--c:var(--m-green);--r:-6deg"></i>
+    <i class="sw" style="--c:var(--m-yellow);--r:4deg"></i>
+    <i class="sw" style="--c:var(--m-red);--r:-3deg"></i>
+  </div>
+  <h1 id="welcomeName">Moin.</h1>
+  <p>Dein Journal ist bereit – Seite eins gehört dir.</p>
 </div>
 
 <!-- ═══════════════ HEUTE / CHECK-IN ═══════════════ -->
@@ -377,7 +402,8 @@
       <span class="eyebrow">Notiz <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
       <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
-    <button class="btn berry" id="saveEntry" style="width:100%;margin-top:14px">Tag festhalten</button>
+    <button class="btn berry" id="saveEntry" style="width:100%;margin-top:14px">Fertig</button>
+    <p class="hint" style="text-align:center;margin-top:10px">Jeder Tipp wird sofort gespeichert – „Fertig" zeigt deine Zusammenfassung.</p>
   </div>
 
   <!-- Zusammenfassung nach dem Speichern -->
@@ -506,7 +532,7 @@
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -514,10 +540,10 @@ const SCALE_COLOR = {g:'var(--m-green)', y:'var(--m-yellow)', r:'var(--m-red)'};
 
 const DEFAULT_HABITS = [
   {id:'gefuehle',    label:'Gefühle',          type:'scale', color:'green', order:1,  active:true},
-  {id:'schlaf',      label:'Gut geschlafen',   type:'scale', color:'green', order:2,  active:true},
-  {id:'obst',        label:'Obst & Gemüse',    type:'scale', color:'green', order:3,  active:true},
-  {id:'sport',       label:'Sport',            type:'check', color:'green', order:4,  active:true},
-  {id:'soziales',    label:'Soziale Kontakte', type:'check', color:'green', order:5,  active:true},
+  {id:'schlaf',      label:'Schlaf',           type:'scale', color:'green', order:2,  active:true},
+  {id:'sport',       label:'Sport',            type:'check', color:'green', order:3,  active:true},
+  {id:'soziales',    label:'Soziale Kontakte', type:'check', color:'green', order:4,  active:true},
+  {id:'obst',        label:'Obst & Gemüse',    type:'check', color:'green', order:5,  active:true},
   {id:'geweint',     label:'Geweint',          type:'check', color:'blue',  order:6,  active:true},
   {id:'overthinking',label:'Overthinking',     type:'check', color:'blue',  order:7,  active:true},
   {id:'streit',      label:'Streit',           type:'check', color:'red',   order:8,  active:true},
@@ -541,11 +567,25 @@ function migrate(d){
   return d;
 }
 
+/* V1.2: „Gut geschlafen" → „Schlaf", „Obst & Gemüse" von Ampel zu Häkchen.
+   Greift nur, solange das Thema noch unverändert dem alten Default entspricht. */
+function touchUpDefaults(d){
+  if(!Array.isArray(d.habits)) return d;
+  const schlaf=d.habits.find(h=>h&&h.id==='schlaf');
+  if(schlaf && schlaf.label==='Gut geschlafen') schlaf.label='Schlaf';
+  const obst=d.habits.find(h=>h&&h.id==='obst');
+  if(obst && obst.type==='scale' && obst.label==='Obst & Gemüse'){
+    obst.type='check';
+    for(const e of Object.values(d.entries||{})) if(e && e.obst) e.obst=true;
+  }
+  return d;
+}
+
 function load(){
   let raw=null;
   try{ raw=localStorage.getItem(KEY) }catch(e){ return null }
   if(!raw) return null;
-  try{ return migrate(JSON.parse(raw)) }
+  try{ return touchUpDefaults(migrate(JSON.parse(raw))) }
   catch(e){
     /* Kaputten State nie stillschweigend überschreiben – Kopie behalten */
     try{ localStorage.setItem(KEY+'_corrupt', raw) }catch(_){}
@@ -648,10 +688,7 @@ function renderToday(){
   const d=parseKey(viewDate); const isToday=viewDate===todayKey();
   $('#todayDate').textContent = WD[d.getDay()]+', '+d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear();
   $('#todayGreeting').textContent = isToday ? greeting() : 'Nachtrag';
-  const hint=$('#todayHint');
-  const showHint = isToday && !S.entries[viewDate] && new Date().getHours()>=18;
-  hint.style.display = showHint?'block':'none';
-  if(showHint) hint.textContent='Heute ist noch nichts im Raster – zwei Tipps genügen.';
+  refreshTodayHint();
   renderDayStrip();
   refreshBanner();
   updateTodayDot();
@@ -661,7 +698,26 @@ function renderToday(){
   if(has) renderDone(); else renderForm();
 }
 
+/* Abend-Hinweis nur, solange der heutige Tag wirklich noch leer ist */
+function refreshTodayHint(){
+  const hint=$('#todayHint');
+  const showHint = viewDate===todayKey() && !S.entries[viewDate] && new Date().getHours()>=18;
+  hint.style.display = showHint?'block':'none';
+  if(showHint) hint.textContent='Heute ist noch nichts im Raster – zwei Tipps genügen.';
+}
+
 let draft = {};
+/* Jedes Tippen speichert sofort: Draft in den State schreiben, leere Tage aufräumen */
+function commitDraft(){
+  const entry={};
+  activeHabits().forEach(h=>{ if(draft[h.id]) entry[h.id]=draft[h.id] });
+  const note=$('#noteInput').value.trim().slice(0,2000); if(note) entry.note=note;
+  if(Object.keys(entry).length) S.entries[viewDate]=entry;
+  else delete S.entries[viewDate];
+  save();
+  updateTodayDot();
+  refreshTodayHint();
+}
 function renderForm(){
   const e=S.entries[viewDate]||{}; draft={...e};
   const sr=$('#scaleRows'); sr.innerHTML='';
@@ -679,6 +735,7 @@ function renderForm(){
     draft[h] = (draft[h]===v)? undefined : v;
     sr.querySelectorAll(`[data-h="${CSS.escape(h)}"]`).forEach(x=>x.classList.toggle('sel', x.dataset.v===draft[h]));
     if(draft[h]){ b.querySelector('.sw').classList.add('draw'); buzz() }
+    commitDraft();
   }));
 
   const cc=$('#checkChips'); cc.innerHTML='';
@@ -689,19 +746,27 @@ function renderForm(){
       draft[h.id]=!draft[h.id]||undefined;
       c.classList.toggle('sel', !!draft[h.id]);
       if(draft[h.id]){ c.querySelector('.sw').classList.add('draw'); buzz() }
+      commitDraft();
     });
     cc.appendChild(c);
   });
   $('#noteInput').value = e.note||'';
 }
 
+/* Die Notiz speichert beim Tippen mit (leicht entprellt) */
+let noteTimer=null;
+$('#noteInput').addEventListener('input',()=>{
+  clearTimeout(noteTimer);
+  noteTimer=setTimeout(commitDraft, 400);
+});
+
+/* „Fertig" speichert nichts mehr (das passiert bei jedem Tipp) –
+   es schließt den Tag ab und zeigt Zusammenfassung + Impulse */
 $('#saveEntry').addEventListener('click',()=>{
-  const entry={};
-  activeHabits().forEach(h=>{ if(draft[h.id]) entry[h.id]=draft[h.id] });
-  const note=$('#noteInput').value.trim(); if(note) entry.note=note;
-  if(Object.keys(entry).length===0){ toast('Wähl erst etwas aus'); return }
-  S.entries[viewDate]=entry; save(); buzz(12);
-  renderToday(); toast('Festgehalten');
+  clearTimeout(noteTimer);
+  commitDraft();
+  if(!S.entries[viewDate]){ toast('Wähl erst etwas aus'); return }
+  buzz(12); renderToday(); toast('Festgehalten');
 });
 
 function renderDone(){
@@ -1053,7 +1118,7 @@ function sanitizeImport(d){
     }
     if(Object.keys(e).length) st.entries[k]=e;
   }
-  return st;
+  return touchUpDefaults(st);
 }
 $('#importFile').addEventListener('change',ev=>{
   const f=ev.target.files[0]; if(!f) return;
@@ -1100,6 +1165,9 @@ function obGo(n){ $$('.ob-step').forEach(s=>s.classList.toggle('active', +s.data
 $$('#onboarding [data-next]').forEach(b=>b.addEventListener('click',()=>{
   const cur=+b.closest('.ob-step').dataset.step; obGo(cur+1);
 }));
+$$('#onboarding [data-back]').forEach(b=>b.addEventListener('click',()=>{
+  const cur=+b.closest('.ob-step').dataset.step; obGo(cur-1);
+}));
 $('#obName').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); obGo(2) } });
 $('#onboarding [data-finish]').addEventListener('click',()=>{
   S.profile.name=$('#obName').value.trim().slice(0,30);
@@ -1108,7 +1176,19 @@ $('#onboarding [data-finish]').addEventListener('click',()=>{
   try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist() }catch(e){}
   $('#onboarding').classList.remove('active');
   switchTab('today');
+  playWelcome();
 });
+
+/* Einmalige, persönliche Begrüßung direkt nach der Einrichtung */
+function playWelcome(){
+  const w=$('#welcome');
+  $('#welcomeName').textContent = S.profile.name ? 'Moin, '+S.profile.name+'.' : 'Moin.';
+  w.classList.add('show'); buzz(12);
+  setTimeout(()=>{
+    w.classList.add('hide');
+    setTimeout(()=>w.classList.remove('show','hide'), 550);
+  }, 2400);
+}
 
 /* ═══════════════════════ SERVICE WORKER ═══════════════════════ */
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
