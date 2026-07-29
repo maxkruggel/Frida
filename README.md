@@ -11,6 +11,7 @@ wie es dir ging und was los war. 100 % lokal, kein Konto, kein Abo, keine Streak
 | `sw.js` | Service Worker: Offline-Start, network-first fürs HTML (keine hängenden alten Versionen) |
 | `manifest.webmanifest` | PWA-Manifest (Name, Farben, Icons) |
 | `icon-180/192/512.png` | App-Icons (180 = Apple Touch Icon) |
+| `favicon.ico` | Browser-Tab-Icon (16/32/48 px, aus dem Marker-Motiv beschnitten) |
 | `docs/Frida_Konzept_und_Uebergabe.md` | Konzept, Datenmodell, Impulse-Engine, Backlog |
 
 ## Betrieb auf dem iPhone
