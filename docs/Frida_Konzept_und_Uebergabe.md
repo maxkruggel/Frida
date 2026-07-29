@@ -59,7 +59,7 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 
 **Aus V1 übernommen:**
 
-- **Splash-Screen** (Wortmarke „Frida" + drei aufpoppende Marker)
+- **Splash-Screen** (Wortmarke „Frida" + drei aufpoppende Marker). Seit V1.3.2 individualisiert: Nach der Einrichtung begrüßt der Start persönlich nach Tageszeit („Moin, {Name}." in Handschrift), die Wortmarke rückt in die Unterzeile („Frida · dein Jahr in Farbe"). Vor der Einrichtung bleibt der generische Splash.
 - **Einmaliges Onboarding** (3 Schritte): Frida stellt sich in der Ich-Form vor + fragt den Namen ab → Themenauswahl (12 Default-Habits, vorausgewählt, abwählbar) → Backup-Erklärung. Neu: Enter im Namensfeld springt weiter, das No-Streak-Versprechen steht im Willkommenstext.
 - **Heute-Screen**: Begrüßung nach Tageszeit („Moin, Lena."), 14-Tage-Streifen zum Nachtragen, Check-in-Formular (Ampel-Fragen + Chips + optionale Notiz), nach dem Speichern Zusammenfassung + Impulse; Eintrag jederzeit editierbar
 - **Monatsraster** (Kern-Screen, 1:1 an der Vorlage): Zeilen = Habits als Pillen-Labels (sticky), Spalten = Tage 1–31, Filzstift-Swatches, Heute-Spalte markiert, horizontal scrollbar, Zell-Tap → Nachtrag; Monatsnavigation über alle Monate
