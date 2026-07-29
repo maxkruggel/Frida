@@ -59,9 +59,9 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 
 **Aus V1 übernommen:**
 
-- **Splash-Screen** (Wortmarke „Frida" + drei aufpoppende Marker). Seit V1.3.2 individualisiert: Nach der Einrichtung begrüßt der Start persönlich nach Tageszeit („Hey, {Name}." in Handschrift, ab 18 Uhr „Guten Abend, {Name}."), die Wortmarke rückt in die Unterzeile („Frida · dein Jahr in Farbe"). Vor der Einrichtung bleibt der generische Splash.
+- **Splash-Screen** (Wortmarke „Frida" + drei aufpoppende Marker). Seit V1.3.2 individualisiert: Nach der Einrichtung begrüßt der Start persönlich nach Tageszeit („Hey, {Name}." in Handschrift, von 18 bis 5 Uhr „Guten Abend, {Name}."), die Wortmarke rückt in die Unterzeile („Frida · dein Jahr in Farbe"). Vor der Einrichtung bleibt der generische Splash.
 - **Einmaliges Onboarding** (3 Schritte): Frida stellt sich in der Ich-Form vor + fragt den Namen ab → Themenauswahl (12 Default-Habits, vorausgewählt, abwählbar) → Backup-Erklärung. Neu: Enter im Namensfeld springt weiter, das No-Streak-Versprechen steht im Willkommenstext.
-- **Heute-Screen**: Begrüßung nach Tageszeit („Hey, Lena.", ab 18 Uhr „Guten Abend, Lena."), 14-Tage-Streifen zum Nachtragen, Check-in-Formular (Ampel-Fragen + Chips + optionale Notiz), nach dem Speichern Zusammenfassung + Impulse; Eintrag jederzeit editierbar
+- **Heute-Screen**: Begrüßung nach Tageszeit („Hey, Lena.", von 18 bis 5 Uhr „Guten Abend, Lena."), 14-Tage-Streifen zum Nachtragen, Check-in-Formular (Ampel-Fragen + Chips + optionale Notiz), nach dem Speichern Zusammenfassung + Impulse; Eintrag jederzeit editierbar
 - **Monatsraster** (Kern-Screen, 1:1 an der Vorlage): Zeilen = Habits als Pillen-Labels (sticky), Spalten = Tage 1–31, Filzstift-Swatches, Heute-Spalte markiert, horizontal scrollbar, Zell-Tap → Nachtrag; Monatsnavigation über alle Monate
 - **Jahr in Farben**: 12×31-Grid, Tagesfarbe = Gefühle-Ampel; darunter Monats-Statistik
 - **Mehr-Screen**: Backup exportieren/importieren (JSON), Habits verwalten, Name ändern, alles zurücksetzen, Disclaimer
@@ -80,7 +80,7 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 
 - **Inhalte-Review der Check-in-Karten:** Unter „Wie war dein Tag?" stehen nur noch echte Ampel-Fragen (Gefühle, Schlaf). „Gut geschlafen" wurde zu **„Schlaf"** umbenannt (die Antwort gut–mittel–schwer passt sonst nicht zur Aussage). **„Obst & Gemüse"** wurde von der Ampel zum Häkchen und antwortet damit auf „Was war heute los?" – „Obst & Gemüse: schwer" ergab keinen Sinn. `touchUpDefaults()` hebt bestehende Geräte und alte Backups sanft an – aber nur, solange das Thema noch unverändert dem alten Default entspricht (eigene Umbenennungen bleiben unangetastet); alte Ampel-Werte für Obst & Gemüse werden zu `true` konvertiert.
 - **Zurück-Button im Onboarding:** Schritt 2 und 3 haben einen „Zurück"-Ghost-Button – Name und Themenauswahl bleiben beim Zurückblättern erhalten.
-- **Persönliche Willkommens-Animation:** Nach „Los geht's" erscheint einmalig ein Overlay im Splash-Stil mit den drei aufpoppenden Markern und **„Moin, {Name}."** in Handschrift, das nach ~2,4 s von selbst in den Heute-Screen übergeht.
+- **Persönliche Willkommens-Animation:** Nach „Los geht's" erscheint einmalig ein Overlay im Splash-Stil mit den drei aufpoppenden Markern und der Tageszeit-Begrüßung (**„Hey, {Name}."** bzw. abends **„Guten Abend, {Name}."**) in Handschrift, das nach ~2,4 s von selbst in den Heute-Screen übergeht.
 - **Jedes Tippen speichert:** Ampel-Tipp, Chip-Tipp und Notiz (entprellt) schreiben sofort in den State – es kann kein Eintrag mehr „verloren gehen", weil der Speichern-Button vergessen wurde. Der Button heißt jetzt **„Fertig"** und schließt den Tag nur noch ab (Zusammenfassung + Impulse). Werden alle Markierungen wieder abgewählt, wird der leere Tag sauber entfernt statt als leerer Eintrag zu bleiben.
 
 **Qualitäts-Basis**: Safe-Areas (Notch), 44-px-Touch-Targets, `prefers-reduced-motion`, Fokus-Styles, konsequentes Escaping aller nutzer- und importkontrollierten Ausgaben (auch in Attributen).
