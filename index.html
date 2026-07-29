@@ -392,7 +392,7 @@
     <i class="sw" style="--c:var(--m-yellow);--r:4deg"></i>
     <i class="sw" style="--c:var(--m-red);--r:-3deg"></i>
   </div>
-  <h1 id="welcomeName">Moin.</h1>
+  <h1 id="welcomeName">Hey.</h1>
   <p>Dein Journal ist bereit – Seite eins gehört dir.</p>
 </div>
 
@@ -431,7 +431,7 @@
   <div class="screen-head">
     <div>
       <span class="eyebrow" id="todayDate"></span>
-      <h2 id="todayGreeting">Moin.</h2>
+      <h2 id="todayGreeting">Hey.</h2>
       <p class="hint" id="todayHint" style="display:none"></p>
     </div>
   </div>
@@ -720,9 +720,9 @@ window.addEventListener('pageshow',checkDayRollover);
 
 /* ═══════════════════════ HEUTE / CHECK-IN ═══════════════════════ */
 function greeting(){
+  /* Abend läuft über Mitternacht hinaus: 18–5 Uhr „Guten Abend", sonst „Hey" */
   const h=new Date().getHours(); const n=S.profile.name?', '+S.profile.name:'';
-  if(h<18) return 'Hey'+n+'.';
-  return 'Guten Abend'+n+'.';
+  return (h>=18||h<5) ? 'Guten Abend'+n+'.' : 'Hey'+n+'.';
 }
 
 function renderDayStrip(){
@@ -1352,7 +1352,7 @@ $('#onboarding [data-finish]').addEventListener('click',()=>{
 /* Einmalige, persönliche Begrüßung direkt nach der Einrichtung */
 function playWelcome(){
   const w=$('#welcome');
-  $('#welcomeName').textContent = S.profile.name ? 'Moin, '+S.profile.name+'.' : 'Moin.';
+  $('#welcomeName').textContent = greeting();
   w.classList.add('show'); buzz(12);
   setTimeout(()=>{
     w.classList.add('hide');
