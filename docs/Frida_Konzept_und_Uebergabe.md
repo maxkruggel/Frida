@@ -103,6 +103,9 @@ Ein einziger localStorage-Key: `frida_v1`
   ],
   "entries": {
     "2026-07-29": { "gefuehle": "g", "schlaf": "y", "sport": true, "periode": true, "note": "Guter Tag." }
+  },
+  "reviews": {
+    "2026-07": { "gefuehl": "g", "note": "Voller Monat, aber ein guter.", "createdAt": "2026-07-31T18:00:00.000Z" }
   }
 }
 ```
@@ -114,6 +117,7 @@ Konventionen:
 - `version` ist der Migrationsanker: `migrate()` zieht alte Stände hoch, neuere Stände werden beim Import mit klarer Meldung abgelehnt
 - Das Backup ist der komplette State – Import ersetzt alles nach Rückfrage und läuft durch `sanitizeImport()` (Struktur prüfen, Felder normalisieren, Unbekanntes verwerfen); Export-Dateiname `frida-backup-YYYY-MM-DD.json`
 - Ein beim Laden nicht parsebarer State wird nie stillschweigend überschrieben, sondern vorher unter `frida_v1_corrupt` weggesichert
+- **Monatsreviews** (seit V1.2): Key `YYYY-MM` unter `reviews`, Felder `gefuehl` (`"g" | "y" | "r"`, optional), `note` (optional), `createdAt`. `profile.lastReviewPrompt` merkt sich den zuletzt erfragten Monat, damit pro Monat nur einmal gefragt wird – auch nach „Heute nicht". Beide Felder sind additiv (kein Schema-Bruch, alte Stände werden beim Laden nachgezogen).
 
 ---
 
@@ -188,6 +192,8 @@ Regelbasiert, kein LLM, alles offline. Regeln und Texte liegen seit V1.1 in eine
 ## 11. Backlog
 
 **V1.1 – Feinschliff: ✅ komplett umgesetzt** (PWA-Basis, Habits umbenennen/löschen/sortieren, Notiz-Verlauf, Haptik, In-App-Erinnerung; zusätzlich vorgezogen: Impulse-Texte in eigener Datenstruktur)
+
+**V1.2 – Monatsreview: ✅ umgesetzt** – am letzten Kalendertag des Monats fragt Frida beim App-Start (bzw. beim Tageswechsel, wenn die App im Speicher bleibt) automatisch nach einem kurzen Monatsrückblick: Monats-Statistik, eine Ampel-Frage („Wie war dieser Monat insgesamt?") und eine optionale Notiz. Pro Monat nur eine Nachfrage, „Heute nicht" wird respektiert; das gespeicherte Review erscheint als Karte in der Monatsansicht und wandert mit ins Backup.
 
 **V2 – Ausbau**
 - **Frida spricht:** Impulse und Begrüßung optional als Stimme (Text-to-Speech bzw. API-Voice) – die Persona ist dafür angelegt
