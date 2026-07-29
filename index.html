@@ -259,7 +259,7 @@
   .switch.on{background:var(--m-green)}
   .switch.on::after{left:23px}
 
-  .color-dots{display:flex;gap:9px}
+  .color-dots{display:flex;gap:9px;flex-wrap:wrap}
   .color-dot{width:34px;height:34px;border-radius:50%;border:2.5px solid transparent}
   .color-dot.sel{border-color:var(--ink)}
 
@@ -476,8 +476,8 @@
       <button class="btn small berry" id="exportBtn">Sichern</button>
     </div>
     <div class="set-row">
-      <div><b>Backup einspielen</b><div class="sub">Ersetzt alle aktuellen Daten</div></div>
-      <button class="btn small line" id="importBtn">Einspielen</button>
+      <div><b>Backup importieren</b><div class="sub">Ersetzt alle aktuellen Daten</div></div>
+      <button class="btn small line" id="importBtn">Importieren</button>
       <input type="file" id="importFile" accept="application/json,.json" hidden>
     </div>
   </div>
@@ -489,8 +489,8 @@
     <div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
       <span class="eyebrow">Neues Thema</span>
       <div class="field" style="margin-top:8px"><input type="text" id="newHabitLabel" placeholder="z. B. Meditation" maxlength="40"></div>
-      <div class="set-row" style="border:none">
-        <select id="newHabitType" aria-label="Art des Themas" style="min-height:44px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;background:var(--card)">
+      <div style="display:flex;flex-direction:column;gap:12px;padding:10px 0">
+        <select id="newHabitType" aria-label="Art des Themas" style="min-height:44px;max-width:100%;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;background:var(--card)">
           <option value="check">Ja/Nein-Häkchen</option>
           <option value="scale">Ampel (gut–mittel–schwer)</option>
         </select>
@@ -1132,7 +1132,7 @@ $('#importFile').addEventListener('change',ev=>{
         : 'Datei nicht lesbar – ist das ein Frida-Backup?');
       return;
     }
-    if(!confirm('Backup einspielen? Deine aktuellen Daten werden ersetzt.')) return;
+    if(!confirm('Backup importieren? Deine aktuellen Daten werden ersetzt.')) return;
     S=st; save(); toast('Backup eingespielt');
     if(S.profile.onboarded) switchTab('today');
     else { renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
