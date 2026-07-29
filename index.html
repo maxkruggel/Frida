@@ -10,6 +10,7 @@
 <meta name="description" content="Frida – dein Jahr in Farbe. Ein digitales Bullet Journal in Filzstift-Optik. Lokal, privat, ohne Konto.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <title>Frida – dein Jahr in Farbe</title>
 <style>
   /* ─────────────────────────  TOKENS  ───────────────────────── */
@@ -88,11 +89,13 @@
 
   /* ─────────────────────────  SPLASH  ───────────────────────── */
   #splash{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:14px;background:var(--paper);
+    align-items:center;justify-content:center;gap:14px;text-align:center;
+    padding:0 26px;background:var(--paper);
     background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
     background-size:22px 22px;transition:opacity .45s ease}
   #splash.hide{opacity:0;pointer-events:none}
   #splash h1{font-size:46px}
+  #splash h1.personal{font-size:40px;line-height:1.15;overflow-wrap:anywhere}
   #splash p{color:var(--ink-soft);font-size:14px}
   .splash-dots{display:flex;gap:10px}
   .splash-dots .sw{width:26px;height:20px;opacity:0;animation:pop .4s ease forwards}
@@ -385,13 +388,13 @@
 
 <!-- ═══════════════ SPLASH ═══════════════ -->
 <div id="splash">
-  <h1>Frida</h1>
+  <h1 id="splashTitle">Frida</h1>
   <div class="splash-dots">
     <i class="sw" style="--c:var(--m-green);--r:-6deg"></i>
     <i class="sw" style="--c:var(--m-yellow);--r:4deg"></i>
     <i class="sw" style="--c:var(--m-red);--r:-3deg"></i>
   </div>
-  <p>dein Jahr in Farbe</p>
+  <p id="splashSub">dein Jahr in Farbe</p>
 </div>
 
 <!-- ═══════════════ ONBOARDING ═══════════════ -->
@@ -454,7 +457,7 @@
     <i class="sw" style="--c:var(--m-yellow);--r:4deg"></i>
     <i class="sw" style="--c:var(--m-red);--r:-3deg"></i>
   </div>
-  <h1 id="welcomeName">Moin.</h1>
+  <h1 id="welcomeName">Hey.</h1>
   <p>Dein Journal ist bereit – Seite eins gehört dir.</p>
 </div>
 
@@ -493,7 +496,7 @@
   <div class="screen-head">
     <div>
       <span class="eyebrow" id="todayDate"></span>
-      <h2 id="todayGreeting">Moin.</h2>
+      <h2 id="todayGreeting">Hey.</h2>
       <p class="hint" id="todayHint" style="display:none"></p>
     </div>
   </div>
@@ -693,7 +696,7 @@
 
 <!-- ═══════════════ PIN-SPERRE ═══════════════ -->
 <div id="lockScreen" aria-label="Gesperrt">
-  <h1 class="hand" id="lockGreeting">Moin.</h1>
+  <h1 class="hand" id="lockGreeting">Hey.</h1>
   <p>Frida ist zu – deine Seiten bleiben privat.</p>
   <input id="lockPin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" aria-label="PIN eingeben" placeholder="····">
   <button class="btn ghost" id="lockForgot">PIN vergessen?</button>
@@ -866,7 +869,7 @@ const fridaPrompt  = o => fridaDialog({...o, input:true});
 const pinHash = p => String(hashStr('frida-pin:'+p));
 function showLock(){
   if(!S.settings.pin) return;
-  $('#lockGreeting').textContent = S.profile.name ? 'Moin, '+S.profile.name+'.' : 'Moin.';
+  $('#lockGreeting').textContent = greeting();   /* gleiche Tageszeit-Begrüßung wie der Heute-Screen */
   $('#lockScreen').classList.add('show');
   const i=$('#lockPin'); i.value='';
 }
@@ -960,10 +963,9 @@ window.addEventListener('pageshow',checkDayRollover);
 
 /* ═══════════════════════ HEUTE / CHECK-IN ═══════════════════════ */
 function greeting(){
+  /* Abend läuft über Mitternacht hinaus: 18–5 Uhr „Guten Abend", sonst „Hey" */
   const h=new Date().getHours(); const n=S.profile.name?', '+S.profile.name:'';
-  if(h<11) return 'Guten Morgen'+n+'.';
-  if(h<18) return 'Moin'+n+'.';
-  return 'Guten Abend'+n+'.';
+  return (h>=18||h<5) ? 'Guten Abend'+n+'.' : 'Hey'+n+'.';
 }
 
 function renderDayStrip(){
@@ -1878,7 +1880,7 @@ $('#importFile').addEventListener('change',ev=>{
     const ok=await fridaConfirm({title:'Backup importieren?',
       msg:'Deine aktuellen Daten werden ersetzt.', ok:'Importieren'});
     if(!ok) return;
-    S=st; save(); applyTheme(S.settings.theme); toast('Backup eingespielt');
+    S=st; save(); applyTheme(S.settings.theme); toast('Backup importiert');
     if(S.profile.onboarded) switchTab('today');
     else { renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
   };
@@ -1927,7 +1929,7 @@ $('#onboarding [data-finish]').addEventListener('click',()=>{
 /* Einmalige, persönliche Begrüßung direkt nach der Einrichtung */
 function playWelcome(){
   const w=$('#welcome');
-  $('#welcomeName').textContent = S.profile.name ? 'Moin, '+S.profile.name+'.' : 'Moin.';
+  $('#welcomeName').textContent = greeting();
   w.classList.add('show'); buzz(12);
   setTimeout(()=>{
     w.classList.add('hide');
@@ -2109,6 +2111,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
 }
 
 /* ═══════════════════════ START ═══════════════════════ */
+/* Splash individualisieren: nach der Einrichtung begrüßt Frida beim Start
+   persönlich nach Tageszeit („Hey, Lena." / abends „Guten Abend, Lena.") –
+   sofort beim Skriptstart gesetzt, damit der generische Titel nicht aufblitzt. */
+if(S.profile.onboarded){
+  const t=$('#splashTitle');
+  t.textContent=greeting(); t.classList.add('personal');
+  $('#splashSub').textContent='Frida · dein Jahr in Farbe';
+}
 window.addEventListener('load',()=>{
   if(S.profile.onboarded){
     try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist() }catch(e){}
