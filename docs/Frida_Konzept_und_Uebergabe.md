@@ -3,7 +3,7 @@
 **Name:** Frida („dein Jahr in Farbe")
 Persona-Ansatz: Die App ist eine Begleiterin, keine Software – sie spricht in der Ich-Form („Ich bin Frida. Ich male dein Jahr auf eine Seite."). Die Malerin-Assoziation ist gewollt und trägt die Filzstift-Ästhetik. Perspektivisch kann Frida eine Stimme bekommen (siehe Backlog V2).
 
-**Stand:** 29.07.2026 · **V1.2** (V1 aus dem Chat, V1.1/V1.2 in Claude Code umgesetzt)
+**Stand:** 29.07.2026 · **V1.3** (V1 aus dem Chat, V1.1–V1.3 in Claude Code umgesetzt)
 **Dateien:** `index.html` (die App, ehemals `frida.html`) + `sw.js` + `manifest.webmanifest` + Icons. Die App selbst bleibt eine einzige Datei ohne Build und ohne Abhängigkeiten, komplett offline-fähig; Service Worker und Manifest sind bewusste, minimale Ausnahmen für die PWA-Installation.
 
 ---
@@ -76,7 +76,7 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 - **Sanfte In-App-Erinnerung**: ab 18 Uhr ohne Eintrag ein Hinweissatz im Heute-Screen plus dezenter Punkt am Heute-Tab – kein Push, kein Druck
 - **Impulse-Engine überarbeitet**: Regeln + Texte in eigene Datenstruktur ausgelagert (V2-Punkt vorgezogen), neue Regel für Erkältung, Texte geschärft (siehe Abschnitt 9)
 
-**Neu in V1.2 (Inhalte-Review + Bedienung):**
+**Neu in V1.3 (Inhalte-Review + Bedienung):**
 
 - **Inhalte-Review der Check-in-Karten:** Unter „Wie war dein Tag?" stehen nur noch echte Ampel-Fragen (Gefühle, Schlaf). „Gut geschlafen" wurde zu **„Schlaf"** umbenannt (die Antwort gut–mittel–schwer passt sonst nicht zur Aussage). **„Obst & Gemüse"** wurde von der Ampel zum Häkchen und antwortet damit auf „Was war heute los?" – „Obst & Gemüse: schwer" ergab keinen Sinn. `touchUpDefaults()` hebt bestehende Geräte und alte Backups sanft an – aber nur, solange das Thema noch unverändert dem alten Default entspricht (eigene Umbenennungen bleiben unangetastet); alte Ampel-Werte für Obst & Gemüse werden zu `true` konvertiert.
 - **Zurück-Button im Onboarding:** Schritt 2 und 3 haben einen „Zurück"-Ghost-Button – Name und Themenauswahl bleiben beim Zurückblättern erhalten.
@@ -85,7 +85,7 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 
 **Qualitäts-Basis**: Safe-Areas (Notch), 44-px-Touch-Targets, `prefers-reduced-motion`, Fokus-Styles, konsequentes Escaping aller nutzer- und importkontrollierten Ausgaben (auch in Attributen).
 
-**Default-Habits (adaptiert aus der Vorlage, Stand V1.2):**
+**Default-Habits (adaptiert aus der Vorlage, Stand V1.3):**
 Ampel-Typ: Gefühle · Schlaf
 Häkchen-Typ: Sport (grün) · Soziale Kontakte (grün) · Obst & Gemüse (grün) · Geweint (blau) · Overthinking (blau) · Streit (rot) · Alkohol (gelb) · Erkältung (gelb) · Intimität (pink, in der Vorlage „GV") · Periode (rot)
 
@@ -110,6 +110,9 @@ Ein einziger localStorage-Key: `frida_v1`
   ],
   "entries": {
     "2026-07-29": { "gefuehle": "g", "schlaf": "y", "sport": true, "periode": true, "note": "Guter Tag." }
+  },
+  "reviews": {
+    "2026-07": { "gefuehl": "g", "note": "Voller Monat, aber ein guter.", "createdAt": "2026-07-31T18:00:00.000Z" }
   }
 }
 ```
@@ -121,6 +124,7 @@ Konventionen:
 - `version` ist der Migrationsanker: `migrate()` zieht alte Stände hoch, neuere Stände werden beim Import mit klarer Meldung abgelehnt
 - Das Backup ist der komplette State – Import ersetzt alles nach Rückfrage und läuft durch `sanitizeImport()` (Struktur prüfen, Felder normalisieren, Unbekanntes verwerfen); Export-Dateiname `frida-backup-YYYY-MM-DD.json`
 - Ein beim Laden nicht parsebarer State wird nie stillschweigend überschrieben, sondern vorher unter `frida_v1_corrupt` weggesichert
+- **Monatsreviews** (seit V1.2): Key `YYYY-MM` unter `reviews`, Felder `gefuehl` (`"g" | "y" | "r"`, optional), `note` (optional), `createdAt`. `profile.lastReviewPrompt` merkt sich den zuletzt erfragten Monat, damit pro Monat nur einmal gefragt wird – auch nach „Heute nicht". Beide Felder sind additiv (kein Schema-Bruch, alte Stände werden beim Laden nachgezogen).
 
 ---
 
@@ -195,6 +199,8 @@ Regelbasiert, kein LLM, alles offline. Regeln und Texte liegen seit V1.1 in eine
 ## 11. Backlog
 
 **V1.1 – Feinschliff: ✅ komplett umgesetzt** (PWA-Basis, Habits umbenennen/löschen/sortieren, Notiz-Verlauf, Haptik, In-App-Erinnerung; zusätzlich vorgezogen: Impulse-Texte in eigener Datenstruktur)
+
+**V1.2 – Monatsreview: ✅ umgesetzt** – am letzten Kalendertag des Monats fragt Frida beim App-Start (bzw. beim Tageswechsel, wenn die App im Speicher bleibt) automatisch nach einem kurzen Monatsrückblick: Monats-Statistik, eine Ampel-Frage („Wie war dieser Monat insgesamt?") und eine optionale Notiz. Pro Monat nur eine Nachfrage, „Heute nicht" wird respektiert; das gespeicherte Review erscheint als Karte in der Monatsansicht und wandert mit ins Backup.
 
 **V2 – Ausbau**
 - **Frida spricht:** Impulse und Begrüßung optional als Stimme (Text-to-Speech bzw. API-Voice) – die Persona ist dafür angelegt
