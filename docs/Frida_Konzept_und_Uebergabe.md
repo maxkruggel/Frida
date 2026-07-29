@@ -3,7 +3,7 @@
 **Name:** Frida („dein Jahr in Farbe")
 Persona-Ansatz: Die App ist eine Begleiterin, keine Software – sie spricht in der Ich-Form („Ich bin Frida. Ich male dein Jahr auf eine Seite."). Die Malerin-Assoziation ist gewollt und trägt die Filzstift-Ästhetik. Perspektivisch kann Frida eine Stimme bekommen (siehe Backlog V2).
 
-**Stand:** 29.07.2026 · **V1.1** (V1 aus dem Chat, V1.1 in Claude Code umgesetzt)
+**Stand:** 29.07.2026 · **V1.3** (V1 aus dem Chat, V1.1–V1.3 in Claude Code umgesetzt)
 **Dateien:** `index.html` (die App, ehemals `frida.html`) + `sw.js` + `manifest.webmanifest` + Icons. Die App selbst bleibt eine einzige Datei ohne Build und ohne Abhängigkeiten, komplett offline-fähig; Service Worker und Manifest sind bewusste, minimale Ausnahmen für die PWA-Installation.
 
 ---
@@ -76,11 +76,18 @@ Primär Frauen ca. 18–40, Bullet-Journal-/Self-Care-affin, Instagram-/TikTok-s
 - **Sanfte In-App-Erinnerung**: ab 18 Uhr ohne Eintrag ein Hinweissatz im Heute-Screen plus dezenter Punkt am Heute-Tab – kein Push, kein Druck
 - **Impulse-Engine überarbeitet**: Regeln + Texte in eigene Datenstruktur ausgelagert (V2-Punkt vorgezogen), neue Regel für Erkältung, Texte geschärft (siehe Abschnitt 9)
 
+**Neu in V1.3 (Inhalte-Review + Bedienung):**
+
+- **Inhalte-Review der Check-in-Karten:** Unter „Wie war dein Tag?" stehen nur noch echte Ampel-Fragen (Gefühle, Schlaf). „Gut geschlafen" wurde zu **„Schlaf"** umbenannt (die Antwort gut–mittel–schwer passt sonst nicht zur Aussage). **„Obst & Gemüse"** wurde von der Ampel zum Häkchen und antwortet damit auf „Was war heute los?" – „Obst & Gemüse: schwer" ergab keinen Sinn. `touchUpDefaults()` hebt bestehende Geräte und alte Backups sanft an – aber nur, solange das Thema noch unverändert dem alten Default entspricht (eigene Umbenennungen bleiben unangetastet); alte Ampel-Werte für Obst & Gemüse werden zu `true` konvertiert.
+- **Zurück-Button im Onboarding:** Schritt 2 und 3 haben einen „Zurück"-Ghost-Button – Name und Themenauswahl bleiben beim Zurückblättern erhalten.
+- **Persönliche Willkommens-Animation:** Nach „Los geht's" erscheint einmalig ein Overlay im Splash-Stil mit den drei aufpoppenden Markern und **„Moin, {Name}."** in Handschrift, das nach ~2,4 s von selbst in den Heute-Screen übergeht.
+- **Jedes Tippen speichert:** Ampel-Tipp, Chip-Tipp und Notiz (entprellt) schreiben sofort in den State – es kann kein Eintrag mehr „verloren gehen", weil der Speichern-Button vergessen wurde. Der Button heißt jetzt **„Fertig"** und schließt den Tag nur noch ab (Zusammenfassung + Impulse). Werden alle Markierungen wieder abgewählt, wird der leere Tag sauber entfernt statt als leerer Eintrag zu bleiben.
+
 **Qualitäts-Basis**: Safe-Areas (Notch), 44-px-Touch-Targets, `prefers-reduced-motion`, Fokus-Styles, konsequentes Escaping aller nutzer- und importkontrollierten Ausgaben (auch in Attributen).
 
-**Default-Habits (adaptiert aus der Vorlage):**
-Ampel-Typ: Gefühle · Gut geschlafen · Obst & Gemüse
-Häkchen-Typ: Sport (grün) · Soziale Kontakte (grün) · Geweint (blau) · Overthinking (blau) · Streit (rot) · Alkohol (gelb) · Erkältung (gelb) · Intimität (pink, in der Vorlage „GV") · Periode (rot)
+**Default-Habits (adaptiert aus der Vorlage, Stand V1.3):**
+Ampel-Typ: Gefühle · Schlaf
+Häkchen-Typ: Sport (grün) · Soziale Kontakte (grün) · Obst & Gemüse (grün) · Geweint (blau) · Overthinking (blau) · Streit (rot) · Alkohol (gelb) · Erkältung (gelb) · Intimität (pink, in der Vorlage „GV") · Periode (rot)
 
 ---
 
