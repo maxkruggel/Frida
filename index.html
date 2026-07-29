@@ -721,8 +721,7 @@ window.addEventListener('pageshow',checkDayRollover);
 /* ═══════════════════════ HEUTE / CHECK-IN ═══════════════════════ */
 function greeting(){
   const h=new Date().getHours(); const n=S.profile.name?', '+S.profile.name:'';
-  if(h<11) return 'Guten Morgen'+n+'.';
-  if(h<18) return 'Moin'+n+'.';
+  if(h<18) return 'Hey'+n+'.';
   return 'Guten Abend'+n+'.';
 }
 
@@ -1376,8 +1375,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
 
 /* ═══════════════════════ START ═══════════════════════ */
 /* Splash individualisieren: nach der Einrichtung begrüßt Frida beim Start
-   persönlich nach Tageszeit („Moin, Lena.") – sofort beim Skriptstart gesetzt,
-   damit der generische Titel gar nicht erst aufblitzt. */
+   persönlich nach Tageszeit („Hey, Lena." / abends „Guten Abend, Lena.") –
+   sofort beim Skriptstart gesetzt, damit der generische Titel nicht aufblitzt. */
 if(S.profile.onboarded){
   const t=$('#splashTitle');
   t.textContent=greeting(); t.classList.add('personal');
