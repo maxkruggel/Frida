@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Frida">
+<meta name="theme-color" content="#F5EEDF">
+<meta name="description" content="Frida – dein Jahr in Farbe. Ein digitales Bullet Journal in Filzstift-Optik. Lokal, privat, ohne Konto.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Frida – dein Jahr in Farbe</title>
+<style>
+  /* ─────────────────────────  TOKENS  ───────────────────────── */
+  :root{
+    --paper:#F5EEDF;
+    --paper-deep:#EFE5D0;
+    --card:#FBF6EA;
+    --ink:#453C31;
+    --ink-soft:#8A7E6D;
+    --line:#DDD2BC;
+    --berry:#9C4F66;
+    --berry-soft:#F0DEE4;
+    --m-green:#3E7A54;
+    --m-red:#D4574E;
+    --m-yellow:#E0AC35;
+    --m-blue:#3E63A6;
+    --m-pink:#DE8E9C;
+    --radius:18px;
+    --safe-b:env(safe-area-inset-bottom, 0px);
+    --safe-t:env(safe-area-inset-top, 0px);
+    --hand:"Noteworthy","Bradley Hand","Segoe Print","Comic Sans MS",cursive;
+    --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:var(--ui);color:var(--ink);background:var(--paper);
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+    /* Punktraster wie Bullet-Journal-Papier */
+    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-size:22px 22px;
+  }
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  input,select{font-family:var(--ui);color:var(--ink)}
+  :focus-visible{outline:2.5px solid var(--berry);outline-offset:2px;border-radius:8px}
+
+  h1,h2,.hand{font-family:var(--hand);font-weight:700;letter-spacing:.2px}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+
+  /* ─────────────────────────  SCREENS  ───────────────────────── */
+  .screen{display:none;min-height:100dvh;padding:calc(var(--safe-t) + 18px) 18px calc(96px + var(--safe-b))}
+  .screen.active{display:block;animation:fadeUp .3s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+
+  /* ─────────────────────────  SPLASH  ───────────────────────── */
+  #splash{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;background:var(--paper);
+    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-size:22px 22px;transition:opacity .45s ease}
+  #splash.hide{opacity:0;pointer-events:none}
+  #splash h1{font-size:46px}
+  #splash p{color:var(--ink-soft);font-size:14px}
+  .splash-dots{display:flex;gap:10px}
+  .splash-dots .sw{width:26px;height:20px;opacity:0;animation:pop .4s ease forwards}
+  .splash-dots .sw:nth-child(1){animation-delay:.15s}
+  .splash-dots .sw:nth-child(2){animation-delay:.3s}
+  .splash-dots .sw:nth-child(3){animation-delay:.45s}
+  @keyframes pop{from{opacity:0;transform:scale(.4) rotate(-10deg)}to{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
+
+  /* ─────────  SIGNATUR: Filzstift-Swatch  ───────── */
+  .sw{
+    display:inline-block;background:var(--c,var(--m-green));
+    border-radius:46% 54% 52% 48% / 58% 46% 54% 42%;
+    transform:rotate(var(--r,0deg));
+    filter:url(#rough);
+  }
+  .sw.draw{animation:draw .28s cubic-bezier(.34,1.4,.6,1)}
+  @keyframes draw{0%{transform:scale(.3) rotate(var(--r,0deg))}70%{transform:scale(1.12) rotate(var(--r,0deg))}100%{transform:scale(1) rotate(var(--r,0deg))}}
+
+  /* ─────────────────────────  ONBOARDING  ───────────────────────── */
+  #onboarding{position:fixed;inset:0;z-index:50;background:var(--paper);
+    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-size:22px 22px;display:none;flex-direction:column;
+    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));overflow-y:auto}
+  #onboarding.active{display:flex}
+  .ob-step{display:none;flex:1;flex-direction:column;animation:fadeUp .35s ease}
+  .ob-step.active{display:flex}
+  .ob-step h2{font-size:34px;line-height:1.15;margin:14px 0 10px}
+  .ob-step p{color:var(--ink-soft);font-size:15px;line-height:1.55;max-width:34ch}
+  .ob-body{flex:1;margin-top:22px}
+  .ob-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+  .ob-progress{display:flex;gap:6px}
+  .ob-progress i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .ob-progress i.on{background:var(--berry)}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    min-height:50px;padding:0 26px;border-radius:26px;font-size:16px;font-weight:600;
+    background:var(--ink);color:var(--paper);transition:transform .12s ease
+  }
+  .btn:active{transform:scale(.96)}
+  .btn.berry{background:var(--berry)}
+  .btn.ghost{background:transparent;color:var(--ink-soft);font-weight:500;min-height:44px}
+  .btn.small{min-height:40px;padding:0 16px;font-size:14px;border-radius:20px}
+  .btn.line{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+
+  .field{margin-top:18px}
+  .field input[type=text]{
+    width:100%;min-height:52px;padding:0 16px;font-size:17px;
+    background:var(--card);border:1.5px solid var(--line);border-radius:14px
+  }
+  .field input:focus{border-color:var(--berry);outline:none}
+
+  /* ─────────────────────────  KARTEN & CHIPS  ───────────────────────── */
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card + .card{margin-top:12px}
+
+  .pill-label{
+    display:inline-block;padding:5px 14px;border:1.6px solid var(--ink);
+    border-radius:999px;font-family:var(--hand);font-size:15px;background:var(--card)
+  }
+
+  /* Skalen-Frage (Ampel) */
+  .scale-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
+  .scale-row + .scale-row{border-top:1px dashed var(--line)}
+  .scale-opts{display:flex;gap:8px}
+  .scale-btn{width:46px;height:46px;border-radius:14px;border:1.6px solid var(--line);
+    background:var(--paper-deep);display:flex;align-items:center;justify-content:center}
+  .scale-btn .sw{width:24px;height:19px;opacity:.28}
+  .scale-btn.sel{border-color:var(--ink)}
+  .scale-btn.sel .sw{opacity:1}
+
+  /* Check-Habits als Chips */
+  .chip-wrap{display:flex;flex-wrap:wrap;gap:9px;padding-top:4px}
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 15px;
+    border:1.6px solid var(--line);border-radius:999px;background:var(--paper-deep);
+    font-family:var(--hand);font-size:15.5px
+  }
+  .chip .sw{width:16px;height:13px;opacity:.25}
+  .chip.sel{border-color:var(--ink);background:var(--card)}
+  .chip.sel .sw{opacity:1}
+
+  textarea{
+    width:100%;min-height:76px;padding:12px 14px;font-size:15px;font-family:var(--ui);
+    background:var(--card);border:1.5px solid var(--line);border-radius:14px;resize:vertical
+  }
+
+  .screen-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+  .screen-head h2{font-size:30px}
+  .hint{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px}
+
+  /* ─────────────────────────  MONATSRASTER  ───────────────────────── */
+  .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .month-nav .hand{font-size:24px}
+  .nav-arrow{width:44px;height:44px;border-radius:50%;background:var(--card);
+    border:1.5px solid var(--line);font-size:18px}
+
+  .grid-scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1.5px solid var(--line);
+    border-radius:var(--radius);background:var(--card);padding:10px 8px 12px}
+  .grid{display:grid;grid-auto-rows:34px;align-items:center;min-width:max-content}
+  .g-corner{position:sticky;left:0;background:var(--card);z-index:2}
+  .g-day{font-size:10.5px;color:var(--ink-soft);text-align:center;font-weight:600}
+  .g-day.today{color:var(--berry);font-weight:800}
+  .g-label{
+    position:sticky;left:0;z-index:2;background:var(--card);padding-right:8px;
+    display:flex;align-items:center
+  }
+  .g-label span{
+    display:inline-block;max-width:104px;padding:3px 11px;border:1.5px solid var(--ink);
+    border-radius:999px;font-family:var(--hand);font-size:12.5px;line-height:1.2;
+    background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  }
+  .g-cell{width:30px;height:100%;display:flex;align-items:center;justify-content:center;
+    border-left:1px solid rgba(221,210,188,.55)}
+  .g-cell .sw{width:20px;height:15px}
+  .g-cell:active .sw{transform:scale(1.15) rotate(var(--r,0deg))}
+  .g-cell.today-col{background:rgba(156,79,102,.06)}
+  .g-cell.future{opacity:.4}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend .sw{width:15px;height:12px}
+
+  .note-item{display:flex;gap:12px;padding:11px 0;align-items:flex-start}
+  .note-item + .note-item{border-top:1px dashed var(--line)}
+  .note-item .nd{min-width:40px;text-align:center;padding-top:1px}
+  .note-item .nd b{font-family:var(--hand);font-size:16px;display:block;line-height:1.1}
+  .note-item .nd small{font-size:10px;color:var(--ink-soft);font-weight:700}
+  .note-item .nt{flex:1;font-size:14px;line-height:1.5;font-style:italic;color:var(--ink)}
+  .note-item .sw{width:14px;height:11px;margin-top:4px}
+
+  /* ─────────────────────────  JAHR IN FARBEN  ───────────────────────── */
+  .year-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;
+    background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:14px 12px}
+  .y-head{font-size:10px;text-align:center;color:var(--ink-soft);font-weight:700;padding-bottom:4px}
+  .y-cell{aspect-ratio:1/1;border-radius:4px;background:var(--paper-deep)}
+  .y-cell.g{background:var(--m-green)}
+  .y-cell.y{background:var(--m-yellow)}
+  .y-cell.r{background:var(--m-red)}
+  .y-cell.off{background:transparent}
+
+  /* ─────────────────────────  IMPULSE  ───────────────────────── */
+  .impulse{border-left:4px solid var(--berry);background:var(--berry-soft);
+    border-radius:14px;padding:13px 15px;margin-top:12px}
+  .impulse .hand{font-size:16px;margin-bottom:3px;display:block}
+  .impulse p{font-size:14px;line-height:1.5;color:var(--ink)}
+
+  /* ─────────────────────────  TAB-BAR  ───────────────────────── */
+  #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;
+    display:flex;justify-content:space-around;align-items:stretch;
+    padding:8px 10px calc(8px + var(--safe-b));
+    background:rgba(251,246,234,.92);backdrop-filter:blur(14px);
+    border-top:1.5px solid var(--line)}
+  #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    min-height:52px;justify-content:center;color:var(--ink-soft);font-size:11px;font-weight:600;position:relative}
+  #tabbar button .ico{font-size:21px;line-height:1}
+  #tabbar button.on{color:var(--berry)}
+  #tabbar button .dot{position:absolute;top:7px;left:50%;margin-left:13px;width:7px;height:7px;
+    border-radius:50%;background:var(--berry);display:none}
+  #tabbar button .dot.show{display:block}
+
+  /* ─────────────────────────  BANNER / TOAST  ───────────────────────── */
+  #backupBanner{display:none;align-items:center;gap:12px;margin-bottom:14px;
+    background:#FBEFCE;border:1.5px solid #E4CE8F;border-radius:14px;padding:12px 14px}
+  #backupBanner.show{display:flex}
+  #backupBanner p{flex:1;font-size:13.5px;line-height:1.4}
+
+  #toast{position:fixed;left:50%;bottom:calc(104px + var(--safe-b));transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:999px;font-size:14px;
+    opacity:0;pointer-events:none;transition:all .3s ease;z-index:70;white-space:nowrap;max-width:88vw;
+    overflow:hidden;text-overflow:ellipsis}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ─────────────────────────  MEHR / SETTINGS  ───────────────────────── */
+  .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+  .set-row + .set-row{border-top:1px dashed var(--line)}
+  .set-row .sub{font-size:12.5px;color:var(--ink-soft)}
+  .switch{width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+    background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch.on{background:var(--m-green)}
+  .switch.on::after{left:23px}
+
+  .color-dots{display:flex;gap:9px}
+  .color-dot{width:34px;height:34px;border-radius:50%;border:2.5px solid transparent}
+  .color-dot.sel{border-color:var(--ink)}
+
+  /* Habit-Manager */
+  .habit-item + .habit-item{border-top:1px dashed var(--line)}
+  .habit-item.dragging{background:var(--paper-deep);border-radius:12px;box-shadow:0 4px 14px rgba(69,60,49,.18);
+    position:relative;z-index:5;border-top:none}
+  .habit-row{display:flex;align-items:center;gap:8px;min-height:56px}
+  .drag-handle{width:38px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);font-size:17px;touch-action:none;cursor:grab}
+  .habit-main{flex:1;display:flex;align-items:center;gap:10px;min-width:0;text-align:left;padding:4px 0}
+  .habit-main .h-label{font-family:var(--hand);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .habit-main .sub{font-size:12px;color:var(--ink-soft)}
+  .habit-actions{display:none;gap:8px;padding:0 0 12px 46px}
+  .habit-actions.open{display:flex}
+
+  .summary-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .summary-line .chip{min-height:36px;font-size:14px;pointer-events:none}
+
+  .day-strip{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 8px}
+  .day-dot{min-width:46px;height:56px;border-radius:14px;border:1.5px solid var(--line);
+    background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .day-dot small{font-size:10px;color:var(--ink-soft);font-weight:700}
+  .day-dot b{font-size:15px;font-family:var(--hand)}
+  .day-dot .sw{width:14px;height:11px}
+  .day-dot.sel{border-color:var(--berry);background:var(--berry-soft)}
+</style>
+</head>
+<body>
+
+<!-- SVG-Filter: raue Filzstift-Kante -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/></filter>
+</svg>
+
+<!-- ═══════════════ SPLASH ═══════════════ -->
+<div id="splash">
+  <h1>Frida</h1>
+  <div class="splash-dots">
+    <i class="sw" style="--c:var(--m-green);--r:-6deg"></i>
+    <i class="sw" style="--c:var(--m-yellow);--r:4deg"></i>
+    <i class="sw" style="--c:var(--m-red);--r:-3deg"></i>
+  </div>
+  <p>dein Jahr in Farbe</p>
+</div>
+
+<!-- ═══════════════ ONBOARDING ═══════════════ -->
+<div id="onboarding" role="dialog" aria-label="Einführung">
+
+  <section class="ob-step" data-step="1">
+    <span class="eyebrow">Willkommen</span>
+    <h2>Schön, dass<br>du da bist.</h2>
+    <p>Ich bin Frida. Ich male dein Jahr auf eine Seite – jeden Tag ein paar Striche, und mit der Zeit siehst du, was dich wirklich bewegt. Kein Konto, keine Cloud, kein Druck. Und keine Streaks: Ein leerer Tag ist bei mir einfach ein leeres Feld.</p>
+    <div class="ob-body">
+      <div class="field">
+        <label class="eyebrow" for="obName">Wie darf ich dich nennen?</label>
+        <input type="text" id="obName" placeholder="Dein Name" autocomplete="given-name" maxlength="30" enterkeyhint="next">
+      </div>
+    </div>
+    <div class="ob-nav">
+      <div class="ob-progress"><i class="on"></i><i></i><i></i></div>
+      <button class="btn berry" data-next>Weiter</button>
+    </div>
+  </section>
+
+  <section class="ob-step" data-step="2">
+    <span class="eyebrow">Deine Themen</span>
+    <h2>Was willst du<br>festhalten?</h2>
+    <p>Tippe an, was zu dir passt – von Schlaf bis Zyklus, alles gleichberechtigt. Du kannst jederzeit ändern, ergänzen oder ausblenden.</p>
+    <div class="ob-body">
+      <div class="chip-wrap" id="obHabits"></div>
+    </div>
+    <div class="ob-nav">
+      <div class="ob-progress"><i class="on"></i><i class="on"></i><i></i></div>
+      <button class="btn berry" data-next>Weiter</button>
+    </div>
+  </section>
+
+  <section class="ob-step" data-step="3">
+    <span class="eyebrow">Eine Sache noch</span>
+    <h2>Deine Daten<br>gehören dir.</h2>
+    <p>Alles bleibt auf deinem iPhone – nichts verlässt dein Gerät. Die Kehrseite: Nur du kannst sichern. Leg deshalb alle zwei bis drei Wochen ein Backup ab. Ein Tipp genügt, ich erinnere dich rechtzeitig.</p>
+    <div class="ob-body">
+      <div class="card">
+        <span class="hand" style="font-size:17px">So funktioniert's</span>
+        <p style="font-size:14px;color:var(--ink-soft);line-height:1.6;margin-top:6px">
+          Mehr → „Backup sichern" → als Datei ablegen, zum Beispiel in iCloud Drive. Beim Gerätewechsel spielst du die Datei einfach wieder ein – fertig.
+        </p>
+      </div>
+    </div>
+    <div class="ob-nav">
+      <div class="ob-progress"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      <button class="btn berry" data-finish>Los geht's</button>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════ HEUTE / CHECK-IN ═══════════════ -->
+<main id="screen-today" class="screen">
+  <div id="backupBanner">
+    <p><b>Zeit für dein Backup.</b><br>Dein letztes liegt eine Weile zurück – einmal sichern dauert 10 Sekunden.</p>
+    <button class="btn small" id="bannerExport">Sichern</button>
+  </div>
+
+  <div class="screen-head">
+    <div>
+      <span class="eyebrow" id="todayDate"></span>
+      <h2 id="todayGreeting">Moin.</h2>
+      <p class="hint" id="todayHint" style="display:none"></p>
+    </div>
+  </div>
+
+  <div class="day-strip" id="dayStrip"></div>
+
+  <!-- Eingabe -->
+  <div id="checkinForm">
+    <div class="card">
+      <span class="eyebrow">Wie war dein Tag?</span>
+      <div id="scaleRows"></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Was war heute los?</span>
+      <div class="chip-wrap" id="checkChips"></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Notiz <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
+      <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
+    </div>
+    <button class="btn berry" id="saveEntry" style="width:100%;margin-top:14px">Tag festhalten</button>
+  </div>
+
+  <!-- Zusammenfassung nach dem Speichern -->
+  <div id="checkinDone" style="display:none">
+    <div class="card">
+      <span class="hand" style="font-size:19px" id="doneHeadline">Festgehalten.</span>
+      <div class="summary-line" id="doneSummary"></div>
+      <p id="doneNote" style="font-size:14px;color:var(--ink-soft);margin-top:10px;font-style:italic"></p>
+      <button class="btn line small" id="editEntry" style="margin-top:14px">Eintrag bearbeiten</button>
+    </div>
+    <div id="impulseWrap"></div>
+  </div>
+</main>
+
+<!-- ═══════════════ MONAT ═══════════════ -->
+<main id="screen-month" class="screen">
+  <div class="screen-head"><h2>Dein Monat</h2></div>
+  <div class="month-nav">
+    <button class="nav-arrow" id="prevMonth" aria-label="Voriger Monat">‹</button>
+    <span class="hand" id="monthTitle"></span>
+    <button class="nav-arrow" id="nextMonth" aria-label="Nächster Monat">›</button>
+  </div>
+  <div class="grid-scroller"><div class="grid" id="monthGrid"></div></div>
+  <div class="legend">
+    <span><i class="sw" style="--c:var(--m-green)"></i> gut</span>
+    <span><i class="sw" style="--c:var(--m-yellow)"></i> mittel</span>
+    <span><i class="sw" style="--c:var(--m-red)"></i> schwer</span>
+  </div>
+  <p class="hint">Häkchen-Themen malen in ihrer eigenen Markerfarbe. Tippe eine Zelle an, um den Tag nachzutragen.</p>
+
+  <div class="card" id="noteHistoryCard" style="margin-top:14px;display:none">
+    <span class="eyebrow">Notizen in diesem Monat</span>
+    <div id="noteHistory"></div>
+  </div>
+</main>
+
+<!-- ═══════════════ JAHR ═══════════════ -->
+<main id="screen-year" class="screen">
+  <div class="screen-head">
+    <div>
+      <span class="eyebrow">Jahr in Farben</span>
+      <h2 id="yearTitle"></h2>
+    </div>
+  </div>
+  <div class="year-grid" id="yearGrid"></div>
+  <p class="hint">Jede Zelle ist ein Tag, die Farbe dein Gefühl. So malt sich dein Jahr von selbst – Lücken sind erlaubt.</p>
+  <div class="card" style="margin-top:14px">
+    <span class="eyebrow">Dieser Monat in Zahlen</span>
+    <div id="monthStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
+  </div>
+</main>
+
+<!-- ═══════════════ MEHR ═══════════════ -->
+<main id="screen-more" class="screen">
+  <div class="screen-head"><h2>Mehr</h2></div>
+
+  <div class="card" id="installCard" style="display:none">
+    <span class="eyebrow">Frida als App</span>
+    <p style="font-size:14px;line-height:1.6;margin-top:8px">
+      Damit ich dauerhaft bei dir bleibe: Öffne mich in Safari, tippe auf
+      <b>Teilen</b> und dann auf <b>„Zum Home-Bildschirm"</b>. Du bekommst ein eigenes
+      Icon, Vollbild – und dein Speicher ist vor Safaris Aufräum-Regeln geschützt.
+    </p>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Backup</span>
+    <div class="set-row">
+      <div><b>Backup sichern</b><div class="sub" id="lastExportInfo"></div></div>
+      <button class="btn small berry" id="exportBtn">Sichern</button>
+    </div>
+    <div class="set-row">
+      <div><b>Backup einspielen</b><div class="sub">Ersetzt alle aktuellen Daten</div></div>
+      <button class="btn small line" id="importBtn">Einspielen</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Deine Themen</span>
+    <p class="hint" style="margin:6px 0 4px">Halten und ziehen am ≡ ändert die Reihenfolge. Antippen zeigt Umbenennen und Löschen.</p>
+    <div id="habitManager"></div>
+    <div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
+      <span class="eyebrow">Neues Thema</span>
+      <div class="field" style="margin-top:8px"><input type="text" id="newHabitLabel" placeholder="z. B. Meditation" maxlength="40"></div>
+      <div class="set-row" style="border:none">
+        <select id="newHabitType" aria-label="Art des Themas" style="min-height:44px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;background:var(--card)">
+          <option value="check">Ja/Nein-Häkchen</option>
+          <option value="scale">Ampel (gut–mittel–schwer)</option>
+        </select>
+        <div class="color-dots" id="newHabitColors"></div>
+      </div>
+      <button class="btn small line" id="addHabit">Hinzufügen</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Profil</span>
+    <div class="set-row">
+      <div><b>Dein Name</b></div>
+      <input type="text" id="profileName" maxlength="30" aria-label="Dein Name" style="max-width:150px;min-height:44px;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;background:var(--paper-deep);text-align:right">
+    </div>
+    <div class="set-row">
+      <div><b>Alles zurücksetzen</b><div class="sub">Löscht sämtliche Einträge</div></div>
+      <button class="btn small line" id="resetBtn" style="color:var(--m-red)">Löschen</button>
+    </div>
+  </div>
+
+  <p style="font-size:12px;color:var(--ink-soft);margin-top:16px;line-height:1.6">
+    Frida ist eine Begleiterin für den Alltag – kein medizinisches Produkt und kein Ersatz für professionelle Hilfe.
+    Wenn es dir über längere Zeit nicht gut geht, sprich mit einem Menschen, dem du vertraust, oder hol dir Unterstützung –
+    zum Beispiel anonym und kostenlos bei der Telefonseelsorge unter 116 123.
+  </p>
+  <p style="font-size:11px;color:var(--ink-soft);margin-top:8px" id="versionInfo"></p>
+</main>
+
+<!-- ═══════════════ TAB-BAR ═══════════════ -->
+<nav id="tabbar" aria-label="Hauptnavigation">
+  <button data-tab="today" class="on"><span class="ico">✎</span>Heute<span class="dot" id="todayDot"></span></button>
+  <button data-tab="month"><span class="ico">▦</span>Monat</button>
+  <button data-tab="year"><span class="ico">❖</span>Jahr</button>
+  <button data-tab="more"><span class="ico">⋯</span>Mehr</button>
+</nav>
+
+<div id="toast" role="status"></div>
+
+<script>
+/* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
+const APP_VERSION = '1.1.0';
+const KEY = 'frida_v1';
+const SCHEMA_VERSION = 1;
+const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
+const SCALE_COLOR = {g:'var(--m-green)', y:'var(--m-yellow)', r:'var(--m-red)'};
+
+const DEFAULT_HABITS = [
+  {id:'gefuehle',    label:'Gefühle',          type:'scale', color:'green', order:1,  active:true},
+  {id:'schlaf',      label:'Gut geschlafen',   type:'scale', color:'green', order:2,  active:true},
+  {id:'obst',        label:'Obst & Gemüse',    type:'scale', color:'green', order:3,  active:true},
+  {id:'sport',       label:'Sport',            type:'check', color:'green', order:4,  active:true},
+  {id:'soziales',    label:'Soziale Kontakte', type:'check', color:'green', order:5,  active:true},
+  {id:'geweint',     label:'Geweint',          type:'check', color:'blue',  order:6,  active:true},
+  {id:'overthinking',label:'Overthinking',     type:'check', color:'blue',  order:7,  active:true},
+  {id:'streit',      label:'Streit',           type:'check', color:'red',   order:8,  active:true},
+  {id:'alkohol',     label:'Alkohol',          type:'check', color:'yellow',order:9,  active:true},
+  {id:'erkaeltung',  label:'Erkältung',        type:'check', color:'yellow',order:10, active:true},
+  {id:'intim',       label:'Intimität',        type:'check', color:'pink',  order:11, active:true},
+  {id:'periode',     label:'Periode',          type:'check', color:'red',   order:12, active:true},
+];
+
+function defaultState(){
+  return {version:SCHEMA_VERSION,
+    profile:{name:'', onboarded:false, createdAt:new Date().toISOString(), lastExport:null},
+    habits: JSON.parse(JSON.stringify(DEFAULT_HABITS)),
+    entries:{}};
+}
+
+/* Migrationsanker: künftige Schema-Änderungen werden hier Schritt für Schritt hochgezogen. */
+function migrate(d){
+  if(d.version > SCHEMA_VERSION) throw new Error('newer');
+  // if(d.version===1){ ...auf 2 heben...; d.version=2 }
+  return d;
+}
+
+function load(){
+  let raw=null;
+  try{ raw=localStorage.getItem(KEY) }catch(e){ return null }
+  if(!raw) return null;
+  try{ return migrate(JSON.parse(raw)) }
+  catch(e){
+    /* Kaputten State nie stillschweigend überschreiben – Kopie behalten */
+    try{ localStorage.setItem(KEY+'_corrupt', raw) }catch(_){}
+    return null;
+  }
+}
+function save(){ try{localStorage.setItem(KEY, JSON.stringify(S))}catch(e){ toast('Speichern fehlgeschlagen – Speicherplatz prüfen')} }
+let S = load() || defaultState();
+
+/* ═══════════════════════ UTILS ═══════════════════════ */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const pad = n => String(n).padStart(2,'0');
+/* Datums-Keys IMMER lokal bauen – nie toISOString() (Zeitzonenfalle) */
+const keyOf = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseKey = k => {const[a,b,c]=k.split('-').map(Number); return new Date(a,b-1,c)};
+const todayKey = () => keyOf(new Date());
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+function hashStr(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0; return Math.abs(h)}
+const rot = seed => ((hashStr(seed)%13)-6)+'deg';
+function activeHabits(){return S.habits.filter(h=>h.active).sort((a,b)=>a.order-b.order)}
+function habitById(id){return S.habits.find(h=>h.id===id)}
+function habitColor(h,v){return h.type==='scale' ? SCALE_COLOR[v]||COLORS[h.color] : COLORS[h.color]}
+function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('show'),2400)}
+function daysBetween(a,b){return Math.floor((b-a)/86400000)}
+function offsetKey(base,off){const d=parseKey(base); d.setDate(d.getDate()+off); return keyOf(d)}
+/* Escaping für Text UND Attribute (deckt " und ' mit ab) */
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function buzz(ms=8){ try{ if(navigator.vibrate) navigator.vibrate(ms) }catch(e){} }
+function isStandalone(){ return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true }
+
+/* ═══════════════════════ NAVIGATION ═══════════════════════ */
+let viewDate = todayKey();
+let monthCursor = {y:new Date().getFullYear(), m:new Date().getMonth()};
+let activeTab = 'today';
+
+function switchTab(name){
+  activeTab=name;
+  $$('#tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
+  $$('.screen').forEach(s=>s.classList.toggle('active', s.id==='screen-'+name));
+  if(name==='month'){const d=parseKey(viewDate); monthCursor={y:d.getFullYear(), m:d.getMonth()}}
+  renderActive();
+  window.scrollTo(0,0);
+}
+function renderActive(){
+  if(activeTab==='today') renderToday();
+  if(activeTab==='month') renderMonth();
+  if(activeTab==='year')  renderYear();
+  if(activeTab==='more')  renderMore();
+  updateTodayDot();
+}
+$$('#tabbar button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+function updateTodayDot(){
+  $('#todayDot').classList.toggle('show', S.profile.onboarded && !S.entries[todayKey()]);
+}
+
+/* Tageswechsel abfangen: App bleibt oft tagelang im Speicher (Home-Screen-App) */
+let lastSeenDay = todayKey();
+function checkDayRollover(){
+  const tk=todayKey();
+  if(tk!==lastSeenDay){
+    lastSeenDay=tk;
+    viewDate=tk;
+    monthCursor={y:new Date().getFullYear(), m:new Date().getMonth()};
+    renderActive();
+  }
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDayRollover() });
+window.addEventListener('focus',checkDayRollover);
+window.addEventListener('pageshow',checkDayRollover);
+
+/* ═══════════════════════ HEUTE / CHECK-IN ═══════════════════════ */
+function greeting(){
+  const h=new Date().getHours(); const n=S.profile.name?', '+S.profile.name:'';
+  if(h<11) return 'Guten Morgen'+n+'.';
+  if(h<18) return 'Moin'+n+'.';
+  return 'Guten Abend'+n+'.';
+}
+
+function renderDayStrip(){
+  const wrap=$('#dayStrip'); wrap.innerHTML='';
+  const tk=todayKey();
+  for(let off=-13; off<=0; off++){
+    const k=offsetKey(tk,off), d=parseKey(k), e=S.entries[k];
+    const el=document.createElement('button'); el.className='day-dot'+(k===viewDate?' sel':'');
+    el.setAttribute('aria-label', WD[d.getDay()]+' '+d.getDate()+'.'+(e?', eingetragen':', leer'));
+    let mark='';
+    if(e){const f=e.gefuehle; const c=f?SCALE_COLOR[f]:'var(--ink-soft)';
+      mark=`<i class="sw" style="--c:${c};--r:${rot(k)}"></i>`}
+    el.innerHTML=`<small>${WD[d.getDay()]}</small><b>${d.getDate()}</b>${mark}`;
+    el.addEventListener('click',()=>{viewDate=k; renderToday()});
+    wrap.appendChild(el);
+  }
+  wrap.scrollLeft=wrap.scrollWidth;
+}
+
+function renderToday(){
+  const d=parseKey(viewDate); const isToday=viewDate===todayKey();
+  $('#todayDate').textContent = WD[d.getDay()]+', '+d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+  $('#todayGreeting').textContent = isToday ? greeting() : 'Nachtrag';
+  const hint=$('#todayHint');
+  const showHint = isToday && !S.entries[viewDate] && new Date().getHours()>=18;
+  hint.style.display = showHint?'block':'none';
+  if(showHint) hint.textContent='Heute ist noch nichts im Raster – zwei Tipps genügen.';
+  renderDayStrip();
+  refreshBanner();
+  updateTodayDot();
+  const has = !!S.entries[viewDate];
+  $('#checkinForm').style.display = has?'none':'block';
+  $('#checkinDone').style.display = has?'block':'none';
+  if(has) renderDone(); else renderForm();
+}
+
+let draft = {};
+function renderForm(){
+  const e=S.entries[viewDate]||{}; draft={...e};
+  const sr=$('#scaleRows'); sr.innerHTML='';
+  activeHabits().filter(h=>h.type==='scale').forEach(h=>{
+    const row=document.createElement('div'); row.className='scale-row';
+    row.innerHTML=`<span class="pill-label">${esc(h.label)}</span>
+      <div class="scale-opts">${['g','y','r'].map(v=>`
+        <button class="scale-btn${draft[h.id]===v?' sel':''}" data-h="${esc(h.id)}" data-v="${v}" aria-label="${esc(h.label)}: ${v==='g'?'gut':v==='y'?'mittel':'schwer'}">
+          <i class="sw" style="--c:${SCALE_COLOR[v]};--r:${rot(viewDate+h.id+v)}"></i>
+        </button>`).join('')}</div>`;
+    sr.appendChild(row);
+  });
+  sr.querySelectorAll('.scale-btn').forEach(b=>b.addEventListener('click',()=>{
+    const h=b.dataset.h, v=b.dataset.v;
+    draft[h] = (draft[h]===v)? undefined : v;
+    sr.querySelectorAll(`[data-h="${CSS.escape(h)}"]`).forEach(x=>x.classList.toggle('sel', x.dataset.v===draft[h]));
+    if(draft[h]){ b.querySelector('.sw').classList.add('draw'); buzz() }
+  }));
+
+  const cc=$('#checkChips'); cc.innerHTML='';
+  activeHabits().filter(h=>h.type==='check').forEach(h=>{
+    const c=document.createElement('button'); c.className='chip'+(draft[h.id]?' sel':'');
+    c.innerHTML=`<i class="sw" style="--c:${COLORS[h.color]};--r:${rot(viewDate+h.id)}"></i>${esc(h.label)}`;
+    c.addEventListener('click',()=>{
+      draft[h.id]=!draft[h.id]||undefined;
+      c.classList.toggle('sel', !!draft[h.id]);
+      if(draft[h.id]){ c.querySelector('.sw').classList.add('draw'); buzz() }
+    });
+    cc.appendChild(c);
+  });
+  $('#noteInput').value = e.note||'';
+}
+
+$('#saveEntry').addEventListener('click',()=>{
+  const entry={};
+  activeHabits().forEach(h=>{ if(draft[h.id]) entry[h.id]=draft[h.id] });
+  const note=$('#noteInput').value.trim(); if(note) entry.note=note;
+  if(Object.keys(entry).length===0){ toast('Wähl erst etwas aus'); return }
+  S.entries[viewDate]=entry; save(); buzz(12);
+  renderToday(); toast('Festgehalten');
+});
+
+function renderDone(){
+  const e=S.entries[viewDate];
+  const heads=['Festgehalten.','Steht im Journal.','Dein Tag hat Farbe.','Schön, dass du da warst.'];
+  $('#doneHeadline').textContent = heads[hashStr(viewDate)%heads.length];
+  const sum=$('#doneSummary'); sum.innerHTML='';
+  activeHabits().forEach(h=>{
+    const v=e[h.id]; if(!v) return;
+    const chip=document.createElement('span'); chip.className='chip sel';
+    chip.innerHTML=`<i class="sw draw" style="--c:${habitColor(h,v)};--r:${rot(viewDate+h.id)}"></i>${esc(h.label)}`;
+    sum.appendChild(chip);
+  });
+  $('#doneNote').textContent = e.note? '„'+e.note+'"' : '';
+  renderImpulses();
+}
+$('#editEntry').addEventListener('click',()=>{
+  $('#checkinForm').style.display='block'; $('#checkinDone').style.display='none'; renderForm();
+});
+
+/* ═══════════════════════ IMPULSE ═══════════════════════ */
+/* Regelbasiert, offline, max. 2 Karten. Tonalität: warm, per Du, nie diagnostisch.
+   Bei anhaltend schweren Tagen wird ausschließlich zu Gesprächen und Unterstützung ermutigt. */
+const IMPULSE_RULES = [
+  {id:'rote-serie',
+   when:c => c.e.gefuehle==='r' && c.count(5,'gefuehle',v=>v==='r')>=3,
+   t:'Schwere Tage',
+   x:'Das waren jetzt mehrere rote Tage kurz hintereinander. Du musst da nicht allein durch – erzähl einem Menschen, dem du vertraust, wie es dir gerade geht. Und wenn das zu groß wirkt: Sich Unterstützung zu holen ist Stärke, kein Drama.'},
+  {id:'roter-tag',
+   when:c => c.e.gefuehle==='r' && c.count(5,'gefuehle',v=>v==='r')<3,
+   t:'Ein schwerer Tag',
+   x:'Heute war zäh – und das darf so sein. Mach es dir leicht: etwas Warmes, etwas Gutes essen, früh ins Bett. Morgen ist ein neues Feld im Raster.'},
+  {id:'geweint',
+   when:c => !!c.e.geweint,
+   t:'Tränen zählen mit',
+   x:'Weinen ist ein Ventil, kein Fehler. Dein Körper sortiert gerade – gönn ihm Ruhe und ein großes Glas Wasser.'},
+  {id:'periode',
+   when:c => !!c.e.periode,
+   t:'Zyklustage',
+   x:'Dein Körper arbeitet gerade doppelt. Wärmflasche, bequeme Kleidung, sanfte Bewegung – und die To-do-Liste darf heute kürzer sein.'},
+  {id:'erkaeltung',
+   when:c => !!c.e.erkaeltung,
+   t:'Gute Besserung',
+   x:'Dein Körper kämpft gerade – hilf ihm mit Tee, Schlaf und wenig Programm. Gesundwerden ist heute Tagesaufgabe genug.'},
+  {id:'sport-serie',
+   when:c => c.v(0,'sport') && c.v(-1,'sport') && c.v(-2,'sport'),
+   t:'Starke Serie',
+   x:'Drei Tage Bewegung am Stück – stark. Und weil Kraft in der Pause wächst: Morgen darf auch ein lockerer Spaziergang reichen.'},
+  {id:'schlaf',
+   when:c => c.count(5,'schlaf',v=>v==='r')>=3,
+   t:'Schlaf zuerst',
+   x:'Dein Schlaf war zuletzt öfter rot. Versuch heute 30 Minuten früher ins Bett – Bildschirm aus, Licht runter. Ausgeschlafen fühlt sich fast alles leichter an.'},
+  {id:'gedankenkarussell',
+   when:c => c.count(7,'overthinking',Boolean)>=4 && c.count(7,'soziales',Boolean)<=1,
+   t:'Raus aus dem Kopf',
+   x:'Viel Gedankenkarussell, wenig Gesellschaft diese Woche. Schreib jemandem, den du magst – ein Kaffee zu zweit sortiert oft mehr als eine Nacht Grübeln.'},
+  {id:'alkohol',
+   when:c => c.count(7,'alkohol',Boolean)>=3,
+   t:'Kleine Pause?',
+   x:'Diese Woche schon dreimal angestoßen. Wie wäre heute ein freier Abend? Dein Schlaf zeigt es dir morgen im Raster.'},
+];
+const IMPULSE_FALLBACK = {
+  when:c => c.e.gefuehle==='g',
+  t:'Läuft bei dir',
+  x:'Ein grüner Tag. Halt kurz fest, was heute gutgetan hat – genau das darfst du wiederholen.'};
+
+function computeImpulses(){
+  const v=(off,id)=>{const e=S.entries[offsetKey(viewDate,off)]; return e?e[id]:undefined};
+  const count=(n,id,pred)=>{let c=0; for(let i=0;i<n;i++){if(pred(v(-i,id)))c++} return c};
+  const ctx={e:S.entries[viewDate]||{}, v, count};
+  const out=IMPULSE_RULES.filter(r=>r.when(ctx));
+  if(out.length===0 && IMPULSE_FALLBACK.when(ctx)) out.push(IMPULSE_FALLBACK);
+  return out.slice(0,2);
+}
+function renderImpulses(){
+  const w=$('#impulseWrap'); w.innerHTML='';
+  computeImpulses().forEach(i=>{
+    const d=document.createElement('div'); d.className='impulse';
+    d.innerHTML=`<span class="hand">${esc(i.t)}</span><p>${esc(i.x)}</p>`;
+    w.appendChild(d);
+  });
+}
+
+/* ═══════════════════════ MONAT ═══════════════════════ */
+function renderMonth(){
+  const {y,m}=monthCursor;
+  $('#monthTitle').textContent=MONTHS[m]+' '+y;
+  const days=new Date(y,m+1,0).getDate();
+  const g=$('#monthGrid'); g.innerHTML='';
+  g.style.gridTemplateColumns=`118px repeat(${days},30px)`;
+  const tk=todayKey(); const tkParts=tk.split('-');
+  const isThisMonth = (+tkParts[0]===y && +tkParts[1]===m+1);
+
+  g.insertAdjacentHTML('beforeend','<div class="g-corner"></div>');
+  for(let d=1;d<=days;d++){
+    const today = isThisMonth && +tkParts[2]===d;
+    g.insertAdjacentHTML('beforeend',`<div class="g-day${today?' today':''}">${d}</div>`);
+  }
+  activeHabits().forEach(h=>{
+    g.insertAdjacentHTML('beforeend',`<div class="g-label"><span>${esc(h.label)}</span></div>`);
+    for(let d=1;d<=days;d++){
+      const k=y+'-'+pad(m+1)+'-'+pad(d);
+      const e=S.entries[k]; const val=e?e[h.id]:undefined;
+      const today = isThisMonth && +tkParts[2]===d;
+      const future = k>tk;
+      const cell=document.createElement('button');
+      cell.className='g-cell'+(today?' today-col':'')+(future?' future':'');
+      cell.setAttribute('aria-label',h.label+' am '+d+'. '+MONTHS[m]);
+      if(val) cell.innerHTML=`<i class="sw" style="--c:${habitColor(h,val)};--r:${rot(k+h.id)}"></i>`;
+      cell.addEventListener('click',()=>{
+        if(future){ toast('Der Tag kommt erst noch'); return }
+        viewDate=k; switchTab('today');
+      });
+      g.appendChild(cell);
+    }
+  });
+  renderNoteHistory();
+}
+$('#prevMonth').addEventListener('click',()=>{monthCursor.m--; if(monthCursor.m<0){monthCursor.m=11;monthCursor.y--} renderMonth()});
+$('#nextMonth').addEventListener('click',()=>{monthCursor.m++; if(monthCursor.m>11){monthCursor.m=0;monthCursor.y++} renderMonth()});
+
+function renderNoteHistory(){
+  const {y,m}=monthCursor;
+  const days=new Date(y,m+1,0).getDate();
+  const items=[];
+  for(let d=1;d<=days;d++){
+    const k=y+'-'+pad(m+1)+'-'+pad(d);
+    const e=S.entries[k];
+    if(e&&e.note) items.push({k,d,e});
+  }
+  const card=$('#noteHistoryCard'), list=$('#noteHistory');
+  card.style.display = items.length?'block':'none';
+  list.innerHTML='';
+  items.forEach(({k,d,e})=>{
+    const wd=WD[parseKey(k).getDay()];
+    const c=e.gefuehle?SCALE_COLOR[e.gefuehle]:'var(--ink-soft)';
+    const row=document.createElement('button'); row.className='note-item'; row.style.width='100%';
+    row.setAttribute('aria-label','Notiz vom '+d+'. '+MONTHS[m]);
+    row.innerHTML=`<span class="nd"><small>${wd}</small><b>${d}.</b></span>
+      <i class="sw" style="--c:${c};--r:${rot(k)}"></i>
+      <span class="nt">„${esc(e.note)}"</span>`;
+    row.addEventListener('click',()=>{viewDate=k; switchTab('today')});
+    list.appendChild(row);
+  });
+}
+
+/* ═══════════════════════ JAHR ═══════════════════════ */
+function renderYear(){
+  const y=new Date().getFullYear();
+  $('#yearTitle').textContent=y;
+  const g=$('#yearGrid'); g.innerHTML='';
+  'JFMAMJJASOND'.split('').forEach(c=>g.insertAdjacentHTML('beforeend',`<div class="y-head">${c}</div>`));
+  for(let d=1;d<=31;d++){
+    for(let m=0;m<12;m++){
+      const valid = d<=new Date(y,m+1,0).getDate();
+      let cls='y-cell'+(valid?'':' off');
+      if(valid){const e=S.entries[y+'-'+pad(m+1)+'-'+pad(d)];
+        if(e&&e.gefuehle) cls+=' '+e.gefuehle}
+      g.insertAdjacentHTML('beforeend',`<div class="${cls}"></div>`);
+    }
+  }
+  // Monats-Stats (aktueller Kalendermonat)
+  const now=new Date(); const mm=now.getMonth(), yy=now.getFullYear();
+  const dm=new Date(yy,mm+1,0).getDate();
+  let logged=0,sport=0,soz=0,gruen=0;
+  for(let d=1;d<=dm;d++){const e=S.entries[yy+'-'+pad(mm+1)+'-'+pad(d)];
+    if(e){logged++; if(e.sport)sport++; if(e.soziales)soz++; if(e.gefuehle==='g')gruen++}}
+  $('#monthStats').innerHTML=
+    `<b>${logged}</b> Tage festgehalten · <b>${gruen}</b>× grün gefühlt<br>`+
+    `<b>${sport}</b>× Sport · <b>${soz}</b>× soziale Kontakte`;
+}
+
+/* ═══════════════════════ MEHR ═══════════════════════ */
+function renderMore(){
+  $('#installCard').style.display = isStandalone()?'none':'block';
+  $('#profileName').value=S.profile.name||'';
+  $('#versionInfo').textContent='Frida '+APP_VERSION+' · alles lokal auf diesem Gerät';
+  const li=$('#lastExportInfo');
+  li.textContent = S.profile.lastExport
+    ? 'Zuletzt: '+new Date(S.profile.lastExport).toLocaleDateString('de-DE')
+    : 'Noch nie gesichert';
+  renderHabitManager();
+  renderColorDots();
+}
+
+function renderHabitManager(){
+  const hm=$('#habitManager'); hm.innerHTML='';
+  S.habits.sort((a,b)=>a.order-b.order).forEach(h=>{
+    const item=document.createElement('div'); item.className='habit-item'; item.dataset.id=h.id;
+    item.innerHTML=`
+      <div class="habit-row">
+        <span class="drag-handle" aria-hidden="true">≡</span>
+        <button class="habit-main" aria-label="${esc(h.label)}: Umbenennen oder Löschen anzeigen">
+          <i class="sw" style="--c:${h.type==='scale'?'var(--m-green)':COLORS[h.color]};width:16px;height:13px;flex:none;--r:${rot(h.id)}"></i>
+          <span style="min-width:0">
+            <span class="h-label" style="display:block">${esc(h.label)}</span>
+            <span class="sub">${h.type==='scale'?'Ampel':'Häkchen'}</span>
+          </span>
+        </button>
+        <button class="switch${h.active?' on':''}" role="switch" aria-checked="${h.active}" aria-label="${esc(h.label)} ${h.active?'ausblenden':'einblenden'}"></button>
+      </div>
+      <div class="habit-actions">
+        <button class="btn small line" data-act="rename">Umbenennen</button>
+        <button class="btn small line" data-act="delete" style="color:var(--m-red)">Löschen</button>
+      </div>`;
+    item.querySelector('.switch').addEventListener('click',ev=>{
+      h.active=!h.active; ev.target.classList.toggle('on',h.active);
+      ev.target.setAttribute('aria-checked',h.active);
+      ev.target.setAttribute('aria-label',h.label+(h.active?' ausblenden':' einblenden'));
+      save();
+    });
+    item.querySelector('.habit-main').addEventListener('click',()=>{
+      const a=item.querySelector('.habit-actions'); const open=a.classList.contains('open');
+      $$('#habitManager .habit-actions').forEach(x=>x.classList.remove('open'));
+      a.classList.toggle('open', !open);
+    });
+    item.querySelector('[data-act="rename"]').addEventListener('click',()=>{
+      const name=prompt('Neuer Name für „'+h.label+'":', h.label);
+      if(name===null) return;
+      const clean=name.trim().slice(0,40);
+      if(!clean){ toast('Name darf nicht leer sein'); return }
+      h.label=clean; save(); renderHabitManager(); toast('Umbenannt');
+    });
+    item.querySelector('[data-act="delete"]').addEventListener('click',()=>{
+      if(!confirm('„'+h.label+'" löschen?\nBisherige Markierungen bleiben im Backup erhalten, werden aber nicht mehr angezeigt.')) return;
+      S.habits=S.habits.filter(x=>x.id!==h.id); save(); renderHabitManager(); toast('Gelöscht');
+    });
+    attachDrag(item);
+    hm.appendChild(item);
+  });
+}
+
+/* Sortieren per Drag am Handle (Pointer Events, iOS-tauglich via touch-action:none) */
+function attachDrag(item){
+  const handle=item.querySelector('.drag-handle');
+  handle.addEventListener('pointerdown',ev=>{
+    ev.preventDefault();
+    const wrap=item.parentElement;
+    item.classList.add('dragging');
+    handle.setPointerCapture(ev.pointerId);
+    const move=e=>{
+      const y=e.clientY;
+      for(const sib of [...wrap.children]){
+        if(sib===item) continue;
+        const r=sib.getBoundingClientRect();
+        if(y < r.top + r.height/2){ if(item.nextSibling!==sib) wrap.insertBefore(item,sib); return }
+      }
+      if(wrap.lastElementChild!==item) wrap.appendChild(item);
+    };
+    const up=()=>{
+      handle.removeEventListener('pointermove',move);
+      handle.removeEventListener('pointerup',up);
+      handle.removeEventListener('pointercancel',up);
+      item.classList.remove('dragging');
+      [...wrap.children].forEach((el,i)=>{const h=habitById(el.dataset.id); if(h) h.order=i+1});
+      save(); buzz();
+    };
+    handle.addEventListener('pointermove',move);
+    handle.addEventListener('pointerup',up);
+    handle.addEventListener('pointercancel',up);
+  });
+}
+
+let newColor='green';
+function renderColorDots(){
+  const w=$('#newHabitColors'); w.innerHTML='';
+  Object.entries(COLORS).forEach(([name,css])=>{
+    const b=document.createElement('button');
+    b.className='color-dot'+(name===newColor?' sel':'');
+    b.style.background=css; b.setAttribute('aria-label','Farbe '+name);
+    b.addEventListener('click',()=>{newColor=name; renderColorDots()});
+    w.appendChild(b);
+  });
+}
+$('#addHabit').addEventListener('click',()=>{
+  const label=$('#newHabitLabel').value.trim(); if(!label){toast('Name fehlt'); return}
+  const id='h_'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+  S.habits.push({id,label:label.slice(0,40),type:$('#newHabitType').value,color:newColor,
+    order:Math.max(0,...S.habits.map(h=>h.order))+1,active:true});
+  save(); $('#newHabitLabel').value=''; renderMore(); toast('„'+label+'" hinzugefügt');
+});
+$('#profileName').addEventListener('change',e=>{S.profile.name=e.target.value.trim().slice(0,30); save(); toast('Gespeichert')});
+$('#resetBtn').addEventListener('click',()=>{
+  if(confirm('Wirklich alles löschen? Das kann nicht rückgängig gemacht werden.\nTipp: Vorher einmal „Backup sichern".')){
+    try{localStorage.removeItem(KEY)}catch(e){}
+    S=defaultState(); location.reload();
+  }
+});
+
+/* ═══════════════════════ BACKUP ═══════════════════════ */
+function markExported(){
+  S.profile.lastExport=new Date().toISOString(); save();
+  refreshBanner(); toast('Backup gesichert');
+  if(activeTab==='more') renderMore();
+}
+async function doExport(){
+  const json=JSON.stringify(S,null,2);
+  const name='frida-backup-'+todayKey()+'.json';
+  /* iOS-Home-Screen-Apps behandeln <a download> unzuverlässig – dort ist das
+     Teilen-Blatt (in „Dateien sichern") der stabile Weg. Desktop lädt klassisch. */
+  try{
+    const file=new File([json],name,{type:'application/json'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'Frida-Backup'});
+      markExported(); return;
+    }
+  }catch(e){
+    if(e && e.name==='AbortError') return;   /* bewusst abgebrochen – nichts markieren */
+    /* sonst: weiter zum Download-Fallback */
+  }
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  markExported();
+}
+$('#exportBtn').addEventListener('click',doExport);
+$('#bannerExport').addEventListener('click',doExport);
+$('#importBtn').addEventListener('click',()=>$('#importFile').click());
+
+/* Import: nie blind übernehmen – Struktur prüfen, Felder normalisieren, Rest verwerfen */
+function sanitizeImport(d){
+  if(!d || typeof d!=='object' || typeof d.version!=='number') throw new Error('format');
+  d=migrate(d);
+  if(!d.profile || !Array.isArray(d.habits) || !d.entries || typeof d.entries!=='object') throw new Error('format');
+  const st=defaultState();
+  st.profile.name = String(d.profile.name||'').slice(0,30);
+  st.profile.onboarded = !!d.profile.onboarded;
+  if(typeof d.profile.createdAt==='string') st.profile.createdAt=d.profile.createdAt;
+  st.profile.lastExport = typeof d.profile.lastExport==='string' ? d.profile.lastExport : null;
+  const habits=d.habits
+    .filter(h=>h && typeof h.id==='string' && typeof h.label==='string' && h.label.trim())
+    .map((h,i)=>({id:h.id.slice(0,60), label:h.label.trim().slice(0,40),
+      type:h.type==='scale'?'scale':'check',
+      color:COLORS[h.color]?h.color:'green',
+      order:Number.isFinite(h.order)?h.order:i+1,
+      active:h.active!==false}));
+  if(habits.length) st.habits=habits;
+  const kRe=/^\d{4}-\d{2}-\d{2}$/;
+  for(const [k,v] of Object.entries(d.entries)){
+    if(!kRe.test(k) || !v || typeof v!=='object') continue;
+    const e={};
+    for(const [id,val] of Object.entries(v)){
+      if(id==='note'){ const n=String(val).trim().slice(0,2000); if(n) e.note=n; continue }
+      if(val===true) e[id]=true;
+      else if(val==='g'||val==='y'||val==='r') e[id]=val;
+    }
+    if(Object.keys(e).length) st.entries[k]=e;
+  }
+  return st;
+}
+$('#importFile').addEventListener('change',ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    let st;
+    try{ st=sanitizeImport(JSON.parse(r.result)) }
+    catch(e){
+      toast(e && e.message==='newer'
+        ? 'Backup stammt aus einer neueren Frida-Version'
+        : 'Datei nicht lesbar – ist das ein Frida-Backup?');
+      return;
+    }
+    if(!confirm('Backup einspielen? Deine aktuellen Daten werden ersetzt.')) return;
+    S=st; save(); toast('Backup eingespielt');
+    if(S.profile.onboarded) switchTab('today');
+    else { renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
+  };
+  r.readAsText(f); ev.target.value='';
+});
+function refreshBanner(){
+  const ref=S.profile.lastExport||S.profile.createdAt;
+  const stale = daysBetween(new Date(ref), new Date())>=14;
+  $('#backupBanner').classList.toggle('show', stale && Object.keys(S.entries).length>0);
+}
+
+/* ═══════════════════════ ONBOARDING ═══════════════════════ */
+let obSel = new Set(DEFAULT_HABITS.map(h=>h.id));
+function renderObHabits(){
+  const w=$('#obHabits'); w.innerHTML='';
+  DEFAULT_HABITS.forEach(h=>{
+    const c=document.createElement('button');
+    c.className='chip'+(obSel.has(h.id)?' sel':'');
+    c.innerHTML=`<i class="sw" style="--c:${h.type==='scale'?'var(--m-green)':COLORS[h.color]};--r:${rot(h.id)}"></i>${esc(h.label)}`;
+    c.addEventListener('click',()=>{
+      obSel.has(h.id)?obSel.delete(h.id):obSel.add(h.id);
+      c.classList.toggle('sel',obSel.has(h.id));
+      if(obSel.has(h.id)){ c.querySelector('.sw').classList.add('draw'); buzz() }
+    });
+    w.appendChild(c);
+  });
+}
+function obGo(n){ $$('.ob-step').forEach(s=>s.classList.toggle('active', +s.dataset.step===n)) }
+$$('#onboarding [data-next]').forEach(b=>b.addEventListener('click',()=>{
+  const cur=+b.closest('.ob-step').dataset.step; obGo(cur+1);
+}));
+$('#obName').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); obGo(2) } });
+$('#onboarding [data-finish]').addEventListener('click',()=>{
+  S.profile.name=$('#obName').value.trim().slice(0,30);
+  S.habits.forEach(h=>h.active=obSel.has(h.id));
+  S.profile.onboarded=true; save();
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist() }catch(e){}
+  $('#onboarding').classList.remove('active');
+  switchTab('today');
+});
+
+/* ═══════════════════════ SERVICE WORKER ═══════════════════════ */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const w=reg.installing; if(!w) return;
+      w.addEventListener('statechange',()=>{
+        if(w.state==='installed' && navigator.serviceWorker.controller)
+          toast('Update geladen – aktiv beim nächsten Start');
+      });
+    });
+  }).catch(()=>{ /* offline oder file:// – App läuft trotzdem */ });
+}
+
+/* ═══════════════════════ START ═══════════════════════ */
+window.addEventListener('load',()=>{
+  if(S.profile.onboarded){
+    try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist() }catch(e){}
+  }
+  setTimeout(()=>{
+    $('#splash').classList.add('hide');
+    if(!S.profile.onboarded){ renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
+    else switchTab('today');
+  }, 1100);
+});
+</script>
+</body>
+</html>
