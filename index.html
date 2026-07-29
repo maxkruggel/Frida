@@ -104,6 +104,22 @@
   .ob-progress i{width:8px;height:8px;border-radius:50%;background:var(--line)}
   .ob-progress i.on{background:var(--berry)}
 
+  /* ─────────────────────────  MONATSREVIEW  ───────────────────────── */
+  #monthReview{position:fixed;inset:0;z-index:55;background:var(--paper);
+    background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
+    background-size:22px 22px;display:none;flex-direction:column;
+    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
+    overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+  #monthReview.active{display:flex;animation:fadeUp .35s ease}
+  #monthReview h2{font-size:34px;line-height:1.15;margin:14px 0 10px}
+  .mr-intro{color:var(--ink-soft);font-size:15px;line-height:1.55;max-width:34ch}
+  .mr-body{flex:1;margin-top:22px}
+  .mr-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+  .mr-scale{display:flex;gap:14px;padding-top:8px}
+  .mr-scale .scale-btn{width:56px;height:56px}
+  .mr-scale .scale-btn .sw{width:30px;height:24px}
+  .mr-scale small{font-size:11px;color:var(--ink-soft);font-weight:600}
+
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
     min-height:50px;padding:0 26px;border-radius:26px;font-size:16px;font-weight:600;
@@ -352,6 +368,31 @@
   </section>
 </div>
 
+<!-- ═══════════════ MONATSREVIEW ═══════════════ -->
+<div id="monthReview" role="dialog" aria-modal="true" aria-label="Monatsreview">
+  <span class="eyebrow">Monatsreview</span>
+  <h2 id="mrTitle"></h2>
+  <p class="mr-intro" id="mrIntro"></p>
+  <div class="mr-body">
+    <div class="card">
+      <span class="eyebrow">Dein Monat in Zahlen</span>
+      <div id="mrStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Wie war dieser Monat insgesamt?</span>
+      <div class="mr-scale" id="mrScale"></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Was bleibt dir von diesem Monat? <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
+      <textarea id="mrNote" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
+    </div>
+  </div>
+  <div class="mr-nav">
+    <button class="btn ghost" id="mrSkip">Heute nicht</button>
+    <button class="btn berry" id="mrSave">Review festhalten</button>
+  </div>
+</div>
+
 <!-- ═══════════════ HEUTE / CHECK-IN ═══════════════ -->
 <main id="screen-today" class="screen">
   <div id="backupBanner">
@@ -413,6 +454,11 @@
     <span><i class="sw" style="--c:var(--m-red)"></i> schwer</span>
   </div>
   <p class="hint">Häkchen-Themen malen in ihrer eigenen Markerfarbe. Tippe eine Zelle an, um den Tag nachzutragen.</p>
+
+  <div class="card" id="monthReviewCard" style="margin-top:14px;display:none">
+    <span class="eyebrow">Dein Monatsreview</span>
+    <div id="monthReviewBody" style="margin-top:8px"></div>
+  </div>
 
   <div class="card" id="noteHistoryCard" style="margin-top:14px;display:none">
     <span class="eyebrow">Notizen in diesem Monat</span>
@@ -512,7 +558,7 @@
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.2.1';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -535,9 +581,10 @@ const DEFAULT_HABITS = [
 
 function defaultState(){
   return {version:SCHEMA_VERSION,
-    profile:{name:'', onboarded:false, createdAt:new Date().toISOString(), lastExport:null},
+    profile:{name:'', onboarded:false, createdAt:new Date().toISOString(), lastExport:null, lastReviewPrompt:null},
     habits: JSON.parse(JSON.stringify(DEFAULT_HABITS)),
-    entries:{}};
+    entries:{},
+    reviews:{}};
 }
 
 /* Migrationsanker: künftige Schema-Änderungen werden hier Schritt für Schritt hochgezogen. */
@@ -560,6 +607,8 @@ function load(){
 }
 function save(){ try{localStorage.setItem(KEY, JSON.stringify(S))}catch(e){ toast('Speichern fehlgeschlagen – Speicherplatz prüfen')} }
 let S = load() || defaultState();
+/* Additive Felder für Stände aus V1.1 nachziehen (kein Schema-Bruch) */
+if(!S.reviews || typeof S.reviews!=='object') S.reviews={};
 
 /* ═══════════════════════ UTILS ═══════════════════════ */
 const $  = s => document.querySelector(s);
@@ -619,6 +668,7 @@ function checkDayRollover(){
     viewDate=tk;
     monthCursor={y:new Date().getFullYear(), m:new Date().getMonth()};
     renderActive();
+    maybeMonthReview();
   }
 }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDayRollover() });
@@ -791,6 +841,103 @@ function renderImpulses(){
   });
 }
 
+/* ═══════════════════════ MONATSREVIEW ═══════════════════════ */
+/* Am letzten Kalendertag des Monats fragt Frida beim Start (und beim
+   Tageswechsel im Speicher) einmalig nach einem kurzen Monatsrückblick.
+   Gespeichert unter S.reviews["YYYY-MM"]; „Heute nicht" merkt sich der
+   Monat über profile.lastReviewPrompt – gefragt wird pro Monat nur einmal. */
+const SCALE_NAMES = {g:'gut', y:'mittel', r:'schwer'};
+const monthKeyOf = d => d.getFullYear()+'-'+pad(d.getMonth()+1);
+function isLastDayOfMonth(d){ return d.getDate()===new Date(d.getFullYear(), d.getMonth()+1, 0).getDate() }
+
+function monthSummary(y,m){
+  const dm=new Date(y,m+1,0).getDate();
+  let logged=0,gruen=0,gelb=0,rot=0,notes=0;
+  for(let d=1;d<=dm;d++){
+    const e=S.entries[y+'-'+pad(m+1)+'-'+pad(d)];
+    if(!e) continue; logged++;
+    if(e.gefuehle==='g')gruen++; else if(e.gefuehle==='y')gelb++; else if(e.gefuehle==='r')rot++;
+    if(e.note)notes++;
+  }
+  return {dm,logged,gruen,gelb,rot,notes};
+}
+
+let mrMonth=null, mrDraft={};
+function renderMrScale(){
+  const w=$('#mrScale'); w.innerHTML='';
+  ['g','y','r'].forEach(v=>{
+    const col=document.createElement('div');
+    col.style.cssText='display:flex;flex-direction:column;align-items:center;gap:5px';
+    col.innerHTML=`<button class="scale-btn${mrDraft.gefuehl===v?' sel':''}" data-v="${v}" aria-label="Monat insgesamt: ${SCALE_NAMES[v]}">
+        <i class="sw${mrDraft.gefuehl===v?' draw':''}" style="--c:${SCALE_COLOR[v]};--r:${rot(mrMonth+'review'+v)}"></i>
+      </button><small>${SCALE_NAMES[v]}</small>`;
+    col.querySelector('button').addEventListener('click',()=>{
+      mrDraft.gefuehl = (mrDraft.gefuehl===v)? undefined : v;
+      renderMrScale();
+      if(mrDraft.gefuehl) buzz();
+    });
+    w.appendChild(col);
+  });
+}
+function openMonthReview(mk){
+  mrMonth=mk; mrDraft={};
+  const [y,m]=mk.split('-').map(Number);
+  $('#mrTitle').textContent = MONTHS[m-1]+' '+y;
+  $('#mrIntro').textContent = 'Heute ist der letzte Tag im '+MONTHS[m-1]+
+    ' – gleich blättere ich die Seite um. Schau mit mir kurz zurück: ein Tipp, vielleicht ein Satz. Ganz ohne Druck.';
+  const s=monthSummary(y,m-1);
+  $('#mrStats').innerHTML =
+    `<b>${s.logged}</b> von ${s.dm} Tagen festgehalten<br>`+
+    `<b>${s.gruen}</b>× grün · <b>${s.gelb}</b>× gelb · <b>${s.rot}</b>× rot gefühlt`+
+    (s.notes?`<br><b>${s.notes}</b> ${s.notes===1?'Notiz':'Notizen'} geschrieben`:'');
+  $('#mrNote').value='';
+  renderMrScale();
+  $('#monthReview').classList.add('active');
+}
+function closeMonthReview(){ $('#monthReview').classList.remove('active') }
+
+$('#mrSave').addEventListener('click',()=>{
+  const note=$('#mrNote').value.trim();
+  if(!mrDraft.gefuehl && !note){ toast('Wähl erst etwas aus'); return }
+  const r={createdAt:new Date().toISOString()};
+  if(mrDraft.gefuehl) r.gefuehl=mrDraft.gefuehl;
+  if(note) r.note=note.slice(0,2000);
+  S.reviews[mrMonth]=r;
+  S.profile.lastReviewPrompt=mrMonth;
+  save(); buzz(12);
+  closeMonthReview();
+  renderActive();
+  toast('Monatsreview festgehalten');
+});
+$('#mrSkip').addEventListener('click',()=>{
+  S.profile.lastReviewPrompt=mrMonth; save();
+  closeMonthReview();
+  toast('Alles gut – dein Monat wartet im Raster');
+});
+
+function maybeMonthReview(){
+  if(!S.profile.onboarded) return;
+  const now=new Date();
+  if(!isLastDayOfMonth(now)) return;
+  const mk=monthKeyOf(now);
+  if(S.reviews[mk] || S.profile.lastReviewPrompt===mk) return;
+  openMonthReview(mk);
+}
+
+/* Gespeichertes Review in der Monatsansicht anzeigen */
+function renderMonthReviewCard(){
+  const {y,m}=monthCursor;
+  const mk=y+'-'+pad(m+1);
+  const r=S.reviews[mk];
+  const card=$('#monthReviewCard');
+  if(!r){ card.style.display='none'; return }
+  card.style.display='block';
+  $('#monthReviewBody').innerHTML =
+    (r.gefuehl?`<span class="chip sel" style="pointer-events:none;min-height:36px;font-size:14px">
+      <i class="sw" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(mk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span>`:'')+
+    (r.note?`<p style="font-size:14px;line-height:1.5;font-style:italic;margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'');
+}
+
 /* ═══════════════════════ MONAT ═══════════════════════ */
 function renderMonth(){
   const {y,m}=monthCursor;
@@ -824,6 +971,7 @@ function renderMonth(){
       g.appendChild(cell);
     }
   });
+  renderMonthReviewCard();
   renderNoteHistory();
 }
 $('#prevMonth').addEventListener('click',()=>{monthCursor.m--; if(monthCursor.m<0){monthCursor.m=11;monthCursor.y--} renderMonth()});
@@ -1040,6 +1188,7 @@ function sanitizeImport(d){
   st.profile.onboarded = !!d.profile.onboarded;
   if(typeof d.profile.createdAt==='string') st.profile.createdAt=d.profile.createdAt;
   st.profile.lastExport = typeof d.profile.lastExport==='string' ? d.profile.lastExport : null;
+  st.profile.lastReviewPrompt = typeof d.profile.lastReviewPrompt==='string' ? d.profile.lastReviewPrompt : null;
   const habits=d.habits
     .filter(h=>h && typeof h.id==='string' && typeof h.label==='string' && h.label.trim())
     .map((h,i)=>({id:h.id.slice(0,60), label:h.label.trim().slice(0,40),
@@ -1058,6 +1207,19 @@ function sanitizeImport(d){
       else if(val==='g'||val==='y'||val==='r') e[id]=val;
     }
     if(Object.keys(e).length) st.entries[k]=e;
+  }
+  if(d.reviews && typeof d.reviews==='object'){
+    const mRe=/^\d{4}-(0[1-9]|1[0-2])$/;
+    for(const [k,v] of Object.entries(d.reviews)){
+      if(!mRe.test(k) || !v || typeof v!=='object') continue;
+      const r={};
+      if(v.gefuehl==='g'||v.gefuehl==='y'||v.gefuehl==='r') r.gefuehl=v.gefuehl;
+      const n=String(v.note||'').trim().slice(0,2000); if(n) r.note=n;
+      if(Object.keys(r).length){
+        if(typeof v.createdAt==='string') r.createdAt=v.createdAt;
+        st.reviews[k]=r;
+      }
+    }
   }
   return st;
 }
@@ -1137,7 +1299,7 @@ window.addEventListener('load',()=>{
   setTimeout(()=>{
     $('#splash').classList.add('hide');
     if(!S.profile.onboarded){ renderObHabits(); obGo(1); $('#onboarding').classList.add('active') }
-    else switchTab('today');
+    else { switchTab('today'); maybeMonthReview() }
   }, 1100);
 });
 </script>
