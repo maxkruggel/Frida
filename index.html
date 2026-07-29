@@ -35,9 +35,12 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
+  html{overflow:hidden}
   body{
     font-family:var(--ui);color:var(--ink);background:var(--paper);
-    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+    -webkit-font-smoothing:antialiased;overscroll-behavior:none;
+    /* App-Gefühl: die Seite selbst sitzt fest, gescrollt wird nur in den Screens */
+    position:fixed;inset:0;width:100%;overflow:hidden;
     /* Punktraster wie Bullet-Journal-Papier */
     background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
     background-size:22px 22px;
@@ -50,7 +53,9 @@
   .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
 
   /* ─────────────────────────  SCREENS  ───────────────────────── */
-  .screen{display:none;min-height:100dvh;padding:calc(var(--safe-t) + 18px) 18px calc(96px + var(--safe-b))}
+  .screen{display:none;position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    padding:calc(var(--safe-t) + 18px) 18px calc(96px + var(--safe-b))}
   .screen.active{display:block;animation:fadeUp .3s ease}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
@@ -86,7 +91,8 @@
   #onboarding{position:fixed;inset:0;z-index:50;background:var(--paper);
     background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
     background-size:22px 22px;display:none;flex-direction:column;
-    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));overflow-y:auto}
+    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
+    overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
   #onboarding.active{display:flex}
   .ob-step{display:none;flex:1;flex-direction:column;animation:fadeUp .35s ease}
   .ob-step.active{display:flex}
@@ -102,7 +108,8 @@
   #monthReview{position:fixed;inset:0;z-index:55;background:var(--paper);
     background-image:radial-gradient(circle, rgba(69,60,49,.10) 1px, transparent 1.2px);
     background-size:22px 22px;display:none;flex-direction:column;
-    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));overflow-y:auto}
+    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
+    overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
   #monthReview.active{display:flex;animation:fadeUp .35s ease}
   #monthReview h2{font-size:34px;line-height:1.15;margin:14px 0 10px}
   .mr-intro{color:var(--ink-soft);font-size:15px;line-height:1.55;max-width:34ch}
@@ -176,7 +183,7 @@
   .nav-arrow{width:44px;height:44px;border-radius:50%;background:var(--card);
     border:1.5px solid var(--line);font-size:18px}
 
-  .grid-scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1.5px solid var(--line);
+  .grid-scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border:1.5px solid var(--line);
     border-radius:var(--radius);background:var(--card);padding:10px 8px 12px}
   .grid{display:grid;grid-auto-rows:34px;align-items:center;min-width:max-content}
   .g-corner{position:sticky;left:0;background:var(--card);z-index:2}
@@ -282,7 +289,7 @@
   .summary-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
   .summary-line .chip{min-height:36px;font-size:14px;pointer-events:none}
 
-  .day-strip{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 8px}
+  .day-strip{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;padding:2px 0 8px}
   .day-dot{min-width:46px;height:56px;border-radius:14px;border:1.5px solid var(--line);
     background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
   .day-dot small{font-size:10px;color:var(--ink-soft);font-weight:700}
@@ -551,7 +558,7 @@
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -637,7 +644,7 @@ function switchTab(name){
   $$('.screen').forEach(s=>s.classList.toggle('active', s.id==='screen-'+name));
   if(name==='month'){const d=parseKey(viewDate); monthCursor={y:d.getFullYear(), m:d.getMonth()}}
   renderActive();
-  window.scrollTo(0,0);
+  const sc=$('#screen-'+name); if(sc) sc.scrollTop=0;
 }
 function renderActive(){
   if(activeTab==='today') renderToday();
