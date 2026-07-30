@@ -3,9 +3,12 @@
 Ein digitales Bullet Journal in Filzstift-Optik: jeden Tag in unter 30 Sekunden festhalten,
 wie es dir ging und was los war. 100 % lokal, kein Konto, kein Abo, keine Streaks.
 
-Stand **V2.0**: Monats- und Jahresreviews, Zyklus-Schätzung, Korrelations-Karten,
-blätterbare Jahresansicht, drei Themes (inkl. Nachtpapier), optionale PIN-Sperre,
-CSV-Export, teilbare Wochen-/Jahresbilder, Notiz-Suche und „Vor einem Jahr".
+Stand **V2.1**: Redesign-Runde 1 aus Claude Design umgesetzt – beschriftete Ampel mit
+Größenstaffelung, Woche als Einstieg in den Monat, haftender Abschluss, echte leere
+Zustände, Inline-Umbenennen mit Rücknahme statt Systemdialogen, WCAG-AA-Kontraste in
+allen drei Themes. Darunter unverändert V2.0: Monats- und Jahresreviews, Zyklus-Schätzung,
+Korrelations-Karten, blätterbare Jahresansicht, drei Themes (inkl. Nachtpapier),
+optionale PIN-Sperre, CSV-Export, teilbare Wochen-/Jahresbilder und Notiz-Suche.
 
 ## Dateien
 
@@ -41,5 +44,18 @@ Konventionen (siehe Konzeptdokument, Abschnitte 6–8):
   Schema-Änderungen laufen über `migrate()`, nie über Bruch.
 - Datums-Keys immer **lokal** erzeugen (`YYYY-MM-DD`), nie `toISOString()`.
 - Ausgaben konsequent escapen (`esc()`), auch in Attributen.
-- Swatch-Rotation deterministisch aus `hash(datum + habitId)`.
+- Swatch-Rotation **und Klecksform** deterministisch aus `hash(datum + habitId)`.
 - Fridas Ich-Stimme in Onboarding und Impulsen; warm, nie diagnostisch.
+
+Aus dem Redesign dazugekommen (siehe `docs/Frida_Design_Uebergabe.md`, Abschnitt 6):
+
+- **Eine Button-Sprache:** Berry gefüllt = die eine Haupthandlung pro Screen,
+  `.btn.line` = sekundär (Berry umrandet), `.btn.ghost` = abbrechen. Braun gefüllt
+  gibt es nicht mehr.
+- **Farbe bedeutet nie allein.** Die Ampel trägt zusätzlich Wort und Größe
+  (`.sw.v-g/-y/-r`); jede neue Farbaussage braucht einen zweiten Kanal.
+- **Kontrast ist Pflicht, nicht Geschmack.** Neue Werte gegen Papier, Karte und
+  Tab-Bar in allen drei Themes prüfen – AA für Text, 3:1 für Grafik. `--m-red`
+  bleibt Markerfarbe, für Text und Löschflächen gibt es `--danger`/`--danger-bg`.
+- **Keine Systemdialoge** für Umbenennen und Löschen: inline bearbeiten, löschen
+  mit sechs Sekunden Rücknahme (`showUndo()`).

@@ -19,21 +19,35 @@
     --paper-deep:#EFE5D0;
     --card:#FBF6EA;
     --ink:#453C31;
-    --ink-soft:#8A7E6D;
+    /* Kontrast gemessen gegen Papier/Karte/Tab-Bar: 5,01 · 5,36 · 4,63:1 (vorher 3,44 · 3,68 · 3,18) */
+    --ink-soft:#6F6455;
     --line:#DDD2BC;
     --berry:#9C4F66;
     --berry-soft:#F0DEE4;
     --m-green:#3E7A54;
     --m-red:#D4574E;
-    --m-yellow:#E0AC35;
+    /* Gelb abgedunkelt, bis es als Grafik 3:1 gegen das Papier hält
+       (1,80 → 3,11; Karte 3,33; Rosé-Papier 3,00). Gleiche Farbfamilie, nur tiefer. */
+    --m-yellow:#B07E1A;
     --m-blue:#3E63A6;
     --m-pink:#DE8E9C;
-    --dot:rgba(69,60,49,.10);
-    --tab-bg:rgba(251,246,234,.92);
+    --dot:rgba(69,60,49,.07);
+    --tab-bg:#EFE5D0;
     --grid-line:rgba(221,210,188,.55);
     --wkend:rgba(69,60,49,.045);
-    --warn-bg:#FBEFCE;
-    --warn-line:#E4CE8F;
+    /* Weiche Hilfslinien: Themen-Pillen und Griffe, Trennlinien in Karten,
+       leere Jahres-Tage, ausgeschalteter Schalter. */
+    --line-soft:#B9AD97;
+    --hair:#EDE3CE;
+    --year-empty:#E7DDC6;
+    --switch-off:#D8CCB4;
+    /* Schrift auf gefülltem Berry – 5,64:1 hell, im Nachtpapier gedreht */
+    --on-berry:#fff;
+    /* Rot für Text und Löschen-Flächen etwas tiefer als der Marker, damit
+       „Löschen" 4,84:1 auf der Karte und Weiß 4,52:1 auf der Fläche hält.
+       Der Marker --m-red bleibt unangetastet. */
+    --danger:#B54A43;
+    --danger-bg:#C55149;
     --radius:18px;
     --safe-b:env(safe-area-inset-bottom, 0px);
     --safe-t:env(safe-area-inset-top, 0px);
@@ -43,10 +57,12 @@
   /* Themes: 2 zusätzliche Papier-Stimmungen, rein über Token-Overrides */
   html[data-theme="rose"]{
     --paper:#F6E8E2; --paper-deep:#F0DCD3; --card:#FBF2ED;
-    --ink:#46352D; --ink-soft:#97806F; --line:#E3CFC2;
+    /* eigener Wert, weil Rosé-Papier heller ist: 5,02 · 5,44 · 4,54:1 */
+    --ink:#46352D; --ink-soft:#716053; --line:#E3CFC2;
     --berry:#A04A5E; --berry-soft:#F3DDE0;
-    --dot:rgba(70,53,45,.10); --tab-bg:rgba(251,242,237,.92);
+    --dot:rgba(70,53,45,.07); --tab-bg:#F0DCD3;
     --grid-line:rgba(227,207,194,.6); --wkend:rgba(70,53,45,.04);
+    --line-soft:#C4AA9B; --hair:#EFE0D8; --year-empty:#E9D8CE; --switch-off:#E0C9BD;
   }
   html[data-theme="nacht"]{
     --paper:#26221B; --paper-deep:#201C16; --card:#2E2921;
@@ -54,9 +70,12 @@
     --berry:#C97B90; --berry-soft:#463039;
     --m-green:#4C9367; --m-red:#DF6A60; --m-yellow:#E4B84E;
     --m-blue:#5E82C2; --m-pink:#E39DA9;
-    --dot:rgba(237,228,211,.07); --tab-bg:rgba(46,41,33,.92);
+    --dot:rgba(237,228,211,.07); --tab-bg:#201C16;
     --grid-line:rgba(69,62,50,.85); --wkend:rgba(237,228,211,.05);
-    --warn-bg:#3A3423; --warn-line:#6B5E33;
+    --line-soft:#6B6152; --hair:#3A342B; --year-empty:#3E382E; --switch-off:#4A4238;
+    /* Auf dem hellen Nacht-Berry trägt dunkle Schrift: 5,06:1 statt 3,13:1 */
+    --on-berry:#26221B;
+    --danger:#E88079; --danger-bg:#DF6A60;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -67,7 +86,7 @@
     /* App-Gefühl: die Seite selbst sitzt fest, gescrollt wird nur in den Screens */
     position:fixed;inset:0;width:100%;overflow:hidden;
     /* Punktraster wie Bullet-Journal-Papier */
-    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
     background-size:22px 22px;
   }
   button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
@@ -75,12 +94,16 @@
   :focus-visible{outline:2.5px solid var(--berry);outline-offset:2px;border-radius:8px}
 
   h1,h2,.hand{font-family:var(--hand);font-weight:700;letter-spacing:.2px}
-  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  /* 12 px gemischt statt 11 px Versalien mit weiter Sperrung – liest sich in der
+     Abendszene deutlich leichter und trägt einen großen Teil des Fließtexts. */
+  .eyebrow{font-size:12px;letter-spacing:.02em;color:var(--ink-soft);font-weight:600}
+  .eyebrow small{font-weight:400}
 
   /* ─────────────────────────  SCREENS  ───────────────────────── */
   .screen{display:none;position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;
     -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-    padding:calc(var(--safe-t) + 18px) 18px calc(96px + var(--safe-b))}
+    padding:calc(var(--safe-t) + 20px) 16px calc(84px + var(--safe-b))}
+  #screen-today.checkin-open{padding-bottom:calc(150px + var(--safe-b))}
   .screen.active{display:block;animation:fadeUp .3s ease}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
@@ -91,7 +114,7 @@
   #splash{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:14px;text-align:center;
     padding:0 26px;background:var(--paper);
-    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
     background-size:22px 22px;transition:opacity .45s ease}
   #splash.hide{opacity:0;pointer-events:none}
   #splash h1{font-size:46px}
@@ -108,17 +131,33 @@
   .sw{
     display:inline-block;background:var(--c,var(--m-green));
     border-radius:46% 54% 52% 48% / 58% 46% 54% 42%;
-    transform:rotate(var(--r,0deg));
+    transform:rotate(var(--r,0deg)) scale(var(--k,1));
     filter:url(#rough);
   }
   .sw.draw{animation:draw .28s cubic-bezier(.34,1.4,.6,1)}
-  @keyframes draw{0%{transform:scale(.3) rotate(var(--r,0deg))}70%{transform:scale(1.12) rotate(var(--r,0deg))}100%{transform:scale(1) rotate(var(--r,0deg))}}
+  @keyframes draw{
+    0%{transform:rotate(var(--r,0deg)) scale(calc(var(--k,1) * .3))}
+    70%{transform:rotate(var(--r,0deg)) scale(calc(var(--k,1) * 1.12))}
+    100%{transform:rotate(var(--r,0deg)) scale(var(--k,1))}}
+
+  /* Zweiter Kanal neben der Farbe: die Ampel trägt ihre Bedeutung auch in der
+     Größe – ein guter Tag hinterlässt am meisten Farbe. Trägt bis in die
+     kleinste Rasterzelle und funktioniert bei Farbenblindheit wie auf
+     gedimmtem Display (Strichdichte verschwimmt unter 14 px). */
+  .sw.v-g{--k:1.28}
+  .sw.v-y{--k:1}
+  .sw.v-r{--k:.76}
+  /* Vier Kleckse statt einem: die Form wechselt deterministisch aus dem Hash mit,
+     damit das Raster gemalt aussieht und nicht gestempelt. */
+  .sw.r1{border-radius:52% 48% 44% 56% / 46% 58% 44% 56%}
+  .sw.r2{border-radius:48% 52% 58% 42% / 52% 46% 54% 48%}
+  .sw.r3{border-radius:58% 42% 48% 52% / 44% 56% 46% 58%}
 
   /* ─────────  WILLKOMMEN (einmalig nach der Einrichtung)  ───────── */
   #welcome{position:fixed;inset:0;z-index:55;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:14px;text-align:center;
     padding:0 26px;background:var(--paper);
-    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
     background-size:22px 22px;transition:opacity .5s ease}
   #welcome.show{display:flex}
   #welcome.hide{opacity:0;pointer-events:none}
@@ -128,7 +167,7 @@
 
   /* ─────────────────────────  ONBOARDING  ───────────────────────── */
   #onboarding{position:fixed;inset:0;z-index:50;background:var(--paper);
-    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
     background-size:22px 22px;display:none;flex-direction:column;
     padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
     overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
@@ -145,30 +184,41 @@
 
   /* ─────────────────────────  MONATSREVIEW  ───────────────────────── */
   #monthReview{position:fixed;inset:0;z-index:55;background:var(--paper);
-    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
     background-size:22px 22px;display:none;flex-direction:column;
-    padding:calc(var(--safe-t) + 40px) 26px calc(30px + var(--safe-b));
+    padding:calc(var(--safe-t) + 20px) 16px calc(20px + var(--safe-b));
     overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
   #monthReview.active{display:flex;animation:fadeUp .35s ease}
-  #monthReview h2{font-size:34px;line-height:1.15;margin:14px 0 10px}
-  .mr-intro{color:var(--ink-soft);font-size:15px;line-height:1.55;max-width:34ch}
-  .mr-body{flex:1;margin-top:22px}
-  .mr-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
-  .mr-scale{display:flex;gap:14px;padding-top:8px}
-  .mr-scale .scale-btn{width:56px;height:56px}
-  .mr-scale .scale-btn .sw{width:30px;height:24px}
-  .mr-scale small{font-size:11px;color:var(--ink-soft);font-weight:600}
+  #monthReview h2{font-size:27px;line-height:1.1;margin:0 0 13px}
+  .mr-intro{color:var(--ink);font-size:14px;line-height:1.55}
+  .mr-body{flex:1;margin-top:13px;display:flex;flex-direction:column;gap:13px}
+  .mr-body .card + .card{margin-top:0}
+  .mr-stats{font-size:13.5px;line-height:1.7;margin-top:4px}
+  /* Klare Zweiteilung: Haupthandlung volle Breite, der Ausweg als ruhiger
+     Textlink darunter – nebeneinander brach „Heute nicht" zweizeilig um. */
+  .mr-nav{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-top:20px}
+  .mr-nav .btn.ghost{align-self:center}
+  .mr-scale{display:flex;justify-content:center;gap:26px;padding-top:4px}
+  .mr-scale .scale-btn{width:56px}
+  .mr-scale .scale-btn .swp{height:34px}
+  .mr-scale .scale-btn .sw{width:25px;height:25px}
 
+  /* Eine Button-Sprache: berry gefüllt = die eine Haupthandlung pro Screen,
+     umrandet = sekundär, ghost = abbrechen und wegtippen. Braun gefüllt
+     entfällt – die Farbe trug vorher keine Bedeutung, nur Klassenzufall. */
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
     min-height:50px;padding:0 26px;border-radius:26px;font-size:16px;font-weight:600;
-    background:var(--ink);color:var(--paper);transition:transform .12s ease
+    background:var(--berry);color:var(--on-berry);transition:transform .12s ease
   }
   .btn:active{transform:scale(.96)}
-  .btn.berry{background:var(--berry)}
+  .btn.berry{background:var(--berry)}   /* Alias – bleibt für bestehende Markup-Stellen gültig */
   .btn.ghost{background:transparent;color:var(--ink-soft);font-weight:500;min-height:44px}
-  .btn.small{min-height:40px;padding:0 16px;font-size:14px;border-radius:20px}
-  .btn.line{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+  .btn.small{min-height:44px;padding:0 18px;font-size:14px;border-radius:26px}
+  /* Sekundär ist umrandet in Berry – nicht braun gefüllt, nicht grau */
+  .btn.line{background:transparent;color:var(--berry);border:1.5px solid var(--berry)}
+  .btn.line.warn{color:var(--danger);border-color:var(--danger)}
+  .btn.wide{width:100%;min-height:48px;font-weight:700}
 
   .field{margin-top:18px}
   .field input[type=text]{
@@ -178,167 +228,291 @@
   .field input:focus{border-color:var(--berry);outline:none}
 
   /* ─────────────────────────  KARTEN & CHIPS  ───────────────────────── */
-  .card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
   .card + .card{margin-top:12px}
 
   .pill-label{
-    display:inline-block;padding:5px 14px;border:1.6px solid var(--ink);
-    border-radius:999px;font-family:var(--hand);font-size:15px;background:var(--card)
+    display:inline-block;padding:2px 12px;border:1.5px solid var(--ink);
+    border-radius:999px;font-family:var(--hand);font-size:14px;background:transparent
   }
 
-  /* Skalen-Frage (Ampel) */
-  .scale-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
-  .scale-row + .scale-row{border-top:1px dashed var(--line)}
+  /* Skalen-Frage (Ampel) – beschriftet wie im Review: dieselbe Frage, dasselbe
+     Muster. Die Farbflecken sind immer voll da; ausgewählt wird durch den Ring,
+     nicht durch Abdunkeln der anderen. */
+  .scale-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+  .scale-row .grow{flex:1}
   .scale-opts{display:flex;gap:8px}
-  .scale-btn{width:46px;height:46px;border-radius:14px;border:1.6px solid var(--line);
-    background:var(--paper-deep);display:flex;align-items:center;justify-content:center}
-  .scale-btn .sw{width:24px;height:19px;opacity:.28}
-  .scale-btn.sel{border-color:var(--ink)}
-  .scale-btn.sel .sw{opacity:1}
+  .scale-btn{width:52px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0}
+  .scale-btn .swp{height:32px;display:flex;align-items:center;justify-content:center}
+  .scale-btn .sw{width:24px;height:24px}
+  .scale-btn small{font-size:11px;font-weight:600;color:var(--ink-soft);line-height:1}
+  .scale-btn.sel .sw{box-shadow:0 0 0 2.5px var(--card), 0 0 0 4px var(--ink)}
+  .scale-btn.sel small{color:var(--ink)}
 
-  /* Check-Habits als Chips */
-  .chip-wrap{display:flex;flex-wrap:wrap;gap:9px;padding-top:4px}
+  /* Check-Habits als Chips: aus = runder Punkt, blass, dünne Linie.
+     An = Klecks in Themenfarbe, Rahmen und Fläche nehmen die Farbe auf. */
+  .chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
   .chip{
-    display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 15px;
-    border:1.6px solid var(--line);border-radius:999px;background:var(--paper-deep);
-    font-family:var(--hand);font-size:15.5px
+    display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 13px;
+    border:1px solid var(--line);border-radius:22px;background:var(--card);
+    font-size:14px;font-weight:400
   }
-  .chip .sw{width:16px;height:13px;opacity:.25}
-  .chip.sel{border-color:var(--ink);background:var(--card)}
-  .chip.sel .sw{opacity:1}
+  .chip .sw{width:11px;height:11px;border-radius:50%;opacity:.55;filter:none}
+  .chip.sel{border:1.5px solid var(--c,var(--ink));font-weight:600;
+    background:color-mix(in srgb, var(--c,var(--ink)) 14%, var(--card))}
+  .chip.sel .sw{opacity:1;filter:url(#rough);
+    border-radius:46% 54% 52% 48% / 54% 46% 54% 46%}
 
   textarea{
-    width:100%;min-height:76px;padding:12px 14px;font-size:15px;font-family:var(--ui);
-    background:var(--card);border:1.5px solid var(--line);border-radius:14px;resize:vertical
+    width:100%;min-height:70px;padding:10px 12px;font-size:14px;font-family:var(--ui);
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;resize:vertical
   }
+  textarea:focus{border-color:var(--berry);outline:none}
 
-  .screen-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
-  .screen-head h2{font-size:30px}
-  .hint{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px}
+  .screen-head{margin-bottom:12px}
+  .screen-head h2{font-size:26px;line-height:1.1}
+  .screen-head .eyebrow{display:block}
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px}
 
   /* ─────────────────────────  MONATSRASTER  ───────────────────────── */
-  .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-  .month-nav .hand{font-size:24px}
-  .nav-arrow{width:44px;height:44px;border-radius:50%;background:var(--card);
-    border:1.5px solid var(--line);font-size:18px}
+  /* Kopf: Titel links, Umschalter Woche | Monat rechts. Die Woche ist der
+     Einstieg – sieben Tage ganz sichtbar, große Ziele. Das volle Raster ist
+     der bewusste Zweitblick. */
+  .month-head{display:flex;align-items:center;margin-bottom:12px}
+  .month-head .grow{flex:1}
+  .seg{display:flex;background:var(--paper-deep);border:1px solid var(--line);
+    border-radius:999px;padding:3px}
+  .seg button{padding:5px 14px;font-size:12.5px;font-weight:600;color:var(--ink-soft);
+    border-radius:999px;min-height:34px}
+  .seg button.on{background:var(--card);border:1px solid var(--line);color:var(--berry);font-weight:700}
+  .range-nav{display:flex;align-items:center;justify-content:center;gap:14px;
+    color:var(--ink-soft);font-size:13px;margin-bottom:12px}
+  .range-nav b{font-weight:600;color:var(--ink)}
+  .nav-arrow{width:44px;height:44px;border-radius:50%;background:transparent;
+    border:none;font-size:18px;color:var(--ink-soft)}
 
-  .grid-scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border:1.5px solid var(--line);
-    border-radius:var(--radius);background:var(--card);padding:10px 8px 12px}
-  .grid{display:grid;grid-auto-rows:34px;align-items:center;min-width:max-content}
-  .g-corner{position:sticky;left:0;background:var(--card);z-index:2}
-  .g-day{font-size:10.5px;color:var(--ink-soft);text-align:center;font-weight:600;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
-  .g-day em{font-style:normal;font-size:8px;font-weight:700;color:var(--ink-soft);opacity:.75;letter-spacing:.02em}
-  .g-day.today{color:var(--berry);font-weight:800}
-  .g-day.today em{color:var(--berry);opacity:1}
+  /* Woche: sieben gleich breite Spalten, Labelspalte 92 px */
+  .week-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+  .week-row{display:flex;align-items:center;height:37px}
+  .week-row.head{height:34px}
+  .w-lab{width:92px;flex:none;box-sizing:border-box;font-family:var(--hand);font-size:13px;
+    border:1.2px solid var(--line-soft);border-radius:999px;padding:1px 9px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-day{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;
+    border-radius:10px;border:1.2px solid transparent;padding:2px 0;box-sizing:border-box}
+  .w-day small{font-size:9.5px;font-weight:600;color:var(--ink-soft)}
+  .w-day b{font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .w-day.today{background:var(--berry-soft);border-color:var(--berry)}
+  .w-day.today small,.w-day.today b{color:var(--berry)}
+  .w-cell{flex:1;min-width:0;height:37px;display:flex;align-items:center;justify-content:center}
+  .w-cell .sw{width:20px;height:20px}
+
+  /* Volles Raster kompakt: Labelspalte 84 statt 118 px, Spalten 26 statt 30 px –
+     elf Tage sichtbar statt acht. Getippt wird die ganze Tagesspalte. */
+  .grid-scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+    border:1px solid var(--line);border-radius:var(--radius);background:var(--card);
+    padding:10px 0 10px 12px;position:relative}
+  .grid-fade{position:absolute;top:0;right:0;bottom:0;width:30px;pointer-events:none;
+    background:linear-gradient(90deg, transparent, var(--card))}
+  .grid{display:grid;grid-auto-rows:30px;align-items:center;min-width:max-content}
+  .g-corner{position:sticky;left:0;background:var(--card);z-index:2;height:24px}
+  .g-day{font-size:10.5px;color:var(--ink-soft);font-weight:700;
+    display:flex;align-items:center;justify-content:center;height:24px;width:100%}
+  .g-day span{min-width:20px;text-align:center;border-radius:8px;padding:2px}
+  .g-day.today{color:var(--berry)}
+  .g-day.today span{background:var(--berry-soft)}
   .g-label{
-    position:sticky;left:0;z-index:2;background:var(--card);padding-right:8px;
+    position:sticky;left:0;z-index:2;background:var(--card);padding-right:6px;
     display:flex;align-items:center
   }
   .g-label span{
-    display:inline-block;max-width:104px;padding:3px 11px;border:1.5px solid var(--ink);
-    border-radius:999px;font-family:var(--hand);font-size:12.5px;line-height:1.2;
+    display:inline-block;max-width:84px;padding:1px 8px;border:1.2px solid var(--line-soft);
+    border-radius:999px;font-family:var(--hand);font-size:12px;line-height:1.3;
     background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis
   }
-  .g-cell{width:30px;height:100%;display:flex;align-items:center;justify-content:center;
-    border-left:1px solid var(--grid-line)}
-  .g-cell .sw{width:20px;height:15px}
-  .g-cell:active .sw{transform:scale(1.15) rotate(var(--r,0deg))}
+  .g-cell{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  .g-cell .sw{width:12px;height:12px}
+  .g-cell:active .sw{transform:rotate(var(--r,0deg)) scale(calc(var(--k,1) * 1.15))}
   .g-cell.we,.g-day.we{background:var(--wkend)}
-  .g-cell.today-col{background:rgba(156,79,102,.06)}
-  .g-cell.future{opacity:.4}
+  .g-cell.today-col{background:var(--berry-soft)}
 
-  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--ink-soft)}
-  .legend span{display:inline-flex;align-items:center;gap:6px}
-  .legend .sw{width:15px;height:12px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--ink-soft);
+    align-items:center;padding:0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend .sw{width:10px;height:10px}
 
-  .note-item{display:flex;gap:12px;padding:11px 0;align-items:flex-start}
-  .note-item + .note-item{border-top:1px dashed var(--line)}
-  .note-item .nd{min-width:40px;text-align:center;padding-top:1px}
-  .note-item .nd b{font-family:var(--hand);font-size:16px;display:block;line-height:1.1}
-  .note-item .nd small{font-size:10px;color:var(--ink-soft);font-weight:700}
-  .note-item .nt{flex:1;font-size:14px;line-height:1.5;font-style:italic;color:var(--ink)}
-  .note-item .sw{width:14px;height:11px;margin-top:4px}
+  /* Notizverlauf ist eine Liste zum Durchsehen: linksbündig, aufrecht,
+     die Datumsspalte als ruhige Kante zum Scannen. */
+  .note-item{display:flex;gap:10px;padding:10px 0;align-items:baseline;text-align:left;
+    width:100%;border-top:1px solid var(--hair)}
+  .note-item .nd{width:44px;flex:none;font-size:12px;font-weight:600;color:var(--ink-soft)}
+  .note-item .nt{flex:1;font-size:14px;line-height:1.45;color:var(--ink)}
+  .note-item .nt small{color:var(--ink-soft)}
+  .note-item .sw{width:9px;height:9px;flex:none;transform:translateY(-1px) rotate(var(--r,0deg))}
 
   /* ─────────────────────────  JAHR IN FARBEN  ───────────────────────── */
-  .year-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;
-    background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:14px 12px}
-  .y-head{font-size:10px;text-align:center;color:var(--ink-soft);font-weight:700;padding-bottom:4px}
-  .y-cell{aspect-ratio:1/1;border-radius:4px;background:var(--paper-deep)}
-  .y-cell.g{background:var(--m-green)}
-  .y-cell.y{background:var(--m-yellow)}
-  .y-cell.r{background:var(--m-red)}
-  .y-cell.off{background:transparent}
+  /* Das ganze Jahr passt jetzt über die Kante: zwölf Spalten à 31 Feldern,
+     heute hat einen Anker, und was noch kommt ist „noch frei" statt „versäumt". */
+  .year-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;padding-top:22px}
+  .y-col{position:relative;display:flex;flex-direction:column;gap:2px}
+  .y-head{text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);
+    height:16px;box-sizing:border-box;border-bottom:2px solid transparent;width:100%}
+  .y-head.on{color:var(--berry);border-bottom-color:var(--berry)}
+  .y-tip{position:absolute;top:-24px;left:50%;transform:translateX(-50%);display:none;
+    background:var(--ink);color:var(--paper);font-size:11px;font-weight:600;
+    padding:3px 9px;border-radius:8px;white-space:nowrap;z-index:2}
+  .y-tip.show{display:block}
+  .y-cell{display:block;height:13px;border-radius:4px;box-sizing:border-box;
+    background:transparent;border:1px solid var(--year-empty)}
+  .y-cell.g{background:var(--m-green);border-color:transparent}
+  .y-cell.y{background:var(--m-yellow);border-color:transparent}
+  .y-cell.r{background:var(--m-red);border-color:transparent}
+  /* Zukunft und Tage, die es nicht gibt, sind leeres Papier – ohne Rahmen */
+  .y-cell.fut,.y-cell.off{background:transparent;border-color:transparent}
+  .y-cell.today{box-shadow:0 0 0 1.5px var(--paper), 0 0 0 3px var(--berry)}
 
   /* ─────────────────────────  IMPULSE  ───────────────────────── */
-  .impulse{border-left:4px solid var(--berry);background:var(--berry-soft);
-    border-radius:14px;padding:13px 15px;margin-top:12px}
-  .impulse .hand{font-size:16px;margin-bottom:3px;display:block}
-  .impulse p{font-size:14px;line-height:1.5;color:var(--ink)}
+  .impulse{background:var(--berry-soft);border-radius:var(--radius);
+    padding:14px;margin-top:12px}
+  .impulse .hand{font-size:17px;margin-bottom:6px;display:block;color:var(--berry)}
+  .impulse p{font-size:13.5px;line-height:1.5;color:var(--ink)}
 
   /* ─────────────────────────  TAB-BAR  ───────────────────────── */
   #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;
     display:flex;justify-content:space-around;align-items:stretch;
-    padding:8px 10px calc(8px + var(--safe-b));
-    background:var(--tab-bg);backdrop-filter:blur(14px);
-    border-top:1.5px solid var(--line)}
-  #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-    min-height:52px;justify-content:center;color:var(--ink-soft);font-size:11px;font-weight:600;position:relative}
-  #tabbar button .ico{font-size:21px;line-height:1}
-  #tabbar button.on{color:var(--berry)}
-  #tabbar button .dot{position:absolute;top:7px;left:50%;margin-left:13px;width:7px;height:7px;
+    padding:0 0 var(--safe-b);
+    background:var(--tab-bg);border-top:1px solid var(--line)}
+  #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    min-height:60px;justify-content:center;color:var(--ink-soft);font-size:10px;font-weight:600;position:relative}
+  #tabbar button .ico{font-size:14px;line-height:1}
+  #tabbar button.on{color:var(--berry);font-weight:700}
+  #tabbar button .dot{position:absolute;top:11px;left:50%;margin-left:11px;width:6px;height:6px;
     border-radius:50%;background:var(--berry);display:none}
   #tabbar button .dot.show{display:block}
 
   /* ─────────────────────────  BANNER / TOAST  ───────────────────────── */
+  /* Das Banner ist ein Hinweis, keine Haupthandlung: Kartenoptik statt Warnfarbe,
+     umrandeter Button, und der Ton bittet nicht um Disziplin. */
   #backupBanner{display:none;align-items:center;gap:12px;margin-bottom:14px;
-    background:var(--warn-bg);border:1.5px solid var(--warn-line);border-radius:14px;padding:12px 14px}
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
   #backupBanner.show{display:flex}
-  #backupBanner p{flex:1;font-size:13.5px;line-height:1.4}
+  #backupBanner .bb-text{flex:1;display:flex;flex-direction:column;gap:2px}
+  #backupBanner b{font-size:14px;font-weight:600}
+  #backupBanner span{font-size:13px;line-height:1.45;color:var(--ink-soft)}
+  #backupBanner .btn{flex:none}
 
-  #toast{position:fixed;left:50%;bottom:calc(104px + var(--safe-b));transform:translateX(-50%) translateY(20px);
+  #toast{position:fixed;left:50%;bottom:calc(76px + var(--safe-b));transform:translateX(-50%) translateY(20px);
     background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:999px;font-size:14px;
     opacity:0;pointer-events:none;transition:all .3s ease;z-index:70;white-space:nowrap;max-width:88vw;
     overflow:hidden;text-overflow:ellipsis}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Rücknahme statt Vorab-Nachfrage: Löschen passiert sofort und lässt sich
+     sechs Sekunden zurückholen – kein grauer Systemkasten. */
+  #undoBar{position:fixed;left:16px;right:16px;bottom:calc(72px + var(--safe-b));z-index:69;
+    background:var(--ink);border-radius:16px;padding:13px 16px;display:none;align-items:center;gap:12px;
+    box-shadow:0 8px 20px rgba(69,60,49,.25);opacity:0;transform:translateY(14px);transition:all .28s ease}
+  #undoBar.show{display:flex;opacity:1;transform:none}
+  #undoBar p{flex:1;font-size:13.5px;line-height:1.45;color:var(--paper)}
+  #undoBar button{flex:none;font-size:14px;font-weight:700;color:var(--berry-soft);
+    text-decoration:underline;min-height:44px;padding:0 4px}
 
   /* ─────────────────────────  MEHR / SETTINGS  ───────────────────────── */
   .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
   .set-row + .set-row{border-top:1px dashed var(--line)}
   .set-row .sub{font-size:12.5px;color:var(--ink-soft)}
   .switch{width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+  /* Sichtbare Kapsel bleibt 30 px, die Trefferfläche wird 44 px hoch (Apple HIG) */
+  .switch::before{content:"";position:absolute;left:0;right:0;top:-7px;bottom:-7px}
   .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
     background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-  .switch.on{background:var(--m-green)}
+  /* Aktiv ist berry – dieselbe Farbe wie überall sonst für „an, ausgewählt, primär" */
+  .switch.on{background:var(--berry)}
   .switch.on::after{left:23px}
 
   .color-dots{display:flex;gap:9px;flex-wrap:wrap}
   .color-dot{width:34px;height:34px;border-radius:50%;border:2.5px solid transparent}
   .color-dot.sel{border-color:var(--ink)}
 
-  /* Habit-Manager */
-  .habit-item + .habit-item{border-top:1px dashed var(--line)}
-  .habit-item.dragging{background:var(--paper-deep);border-radius:12px;box-shadow:0 4px 14px rgba(69,60,49,.18);
-    position:relative;z-index:5;border-top:none}
-  .habit-row{display:flex;align-items:center;gap:8px;min-height:56px}
-  .drag-handle{width:38px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;
-    color:var(--ink-soft);font-size:17px;touch-action:none;cursor:grab}
-  .habit-main{flex:1;display:flex;align-items:center;gap:10px;min-width:0;text-align:left;padding:4px 0}
-  .habit-main .h-label{font-family:var(--hand);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .habit-main .sub{font-size:12px;color:var(--ink-soft)}
-  .habit-actions{display:none;gap:8px;padding:0 0 12px 46px}
-  .habit-actions.open{display:flex}
+  /* Habit-Manager: jede Zeile eine eigene Karte. Umbenennen passiert inline in
+     der Zeile – kein prompt(), kein Systemkasten. */
+  .habit-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+  .habit-item + .habit-item{margin-top:10px}
+  .habit-item.open{border:1.5px solid var(--berry)}
+  .habit-item.dragging{box-shadow:0 8px 20px rgba(69,60,49,.22);position:relative;z-index:5}
+  .habit-row{display:flex;align-items:center;gap:10px}
+  .drag-handle{width:24px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;
+    color:var(--line-soft);font-size:15px;touch-action:none;cursor:grab}
+  .habit-main{flex:1;display:flex;align-items:center;gap:10px;min-width:0;text-align:left}
+  .habit-main .sw{width:12px;height:12px;flex:none}
+  .habit-main .h-label{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .habit-main .sub{font-size:11px;color:var(--ink-soft)}
+  .habit-edit{display:flex;gap:8px;align-items:center}
+  .habit-edit input{flex:1;min-width:0;min-height:44px;background:var(--paper);
+    border:1.5px solid var(--berry);border-radius:12px;padding:0 12px;font-size:15px}
+  .habit-edit input:focus{outline:none}
+  .habit-foot{display:flex;align-items:center}
+  .habit-foot .grow{flex:1}
+  .habit-foot button{font-size:14px;min-height:44px;padding:0 4px;color:var(--ink-soft)}
+  .habit-foot button.del{color:var(--danger);font-weight:600}
 
-  .summary-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-  .summary-line .chip{min-height:36px;font-size:14px;pointer-events:none}
+  /* Zusammenfassung: Handschrift-Chips auf Papier, die Markierung als Klecks */
+  .summary-line{display:flex;flex-wrap:wrap;gap:7px}
+  .summary-line .schip{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;
+    border-radius:20px;border:1.2px solid var(--ink);background:var(--paper);
+    font-family:var(--hand);font-size:13.5px;font-weight:700}
+  .summary-line .schip .sw{width:11px;height:11px}
+  /* Notiz als ruhiges Zitat an der Kante, aufrecht statt kursiv */
+  .quote{border-left:2.5px solid var(--line);padding-left:10px;
+    font-size:14px;line-height:1.45;color:var(--ink)}
 
-  .day-strip{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;padding:2px 0 8px}
-  .day-dot{min-width:46px;height:56px;border-radius:14px;border:1.5px solid var(--line);
-    background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-  .day-dot small{font-size:10px;color:var(--ink-soft);font-weight:700}
-  .day-dot b{font-size:15px;font-family:var(--hand)}
-  .day-dot .sw{width:14px;height:11px}
-  .day-dot.sel{border-color:var(--berry);background:var(--berry-soft)}
+  /* Der Abschluss des Rituals bleibt im Bild: „Fertig" haftet über der Tab-Bar,
+     egal wie weit gescrollt wurde. Vorher begann der Button bei y = 835 und
+     verlangte jedes Mal eine Scrollbewegung ins Leere. */
+  #saveBar{position:fixed;left:0;right:0;bottom:calc(60px + var(--safe-b));z-index:38;
+    padding:28px 16px 12px;display:none;
+    background:linear-gradient(180deg, transparent, var(--paper) 55%)}
+  #saveBar.show{display:block}
+  @media (min-width:620px){
+    #saveBar{padding-left:calc(50vw - 260px);padding-right:calc(50vw - 260px)}
+  }
+
+  /* Chips in stillen Gruppen – Körper, Innen, Außen. Kein Titel, nur Abstand. */
+  .chip-group + .chip-group{margin-top:14px}
+
+  /* Leere Zustände: ein Satz in Fridas Stimme, ein gedämpftes Beispiel,
+     genau eine Handlung. Kein leeres Raster mit Aufforderung ins Nichts. */
+  .empty-state{display:flex;flex-direction:column;align-items:center;gap:14px;
+    text-align:center;padding:26px 22px;margin-top:36px}
+  .empty-state h3{font-family:var(--hand);font-size:22px;font-weight:700}
+  .empty-state p{font-size:14px;line-height:1.55;color:var(--ink-soft);max-width:270px}
+  .empty-state .cap{font-size:11px;color:var(--ink-soft)}
+  .empty-demo{display:flex;flex-direction:column;gap:5px;opacity:.2;padding:6px 0}
+  .empty-demo div{display:flex;gap:5px}
+  .empty-demo i{width:17px;height:17px;border-radius:46% 54% 52% 48% / 54% 46% 54% 46%}
+  .empty-year{height:170px;overflow:hidden;opacity:.18;
+    -webkit-mask-image:linear-gradient(180deg,#000 35%,transparent 100%);
+    mask-image:linear-gradient(180deg,#000 35%,transparent 100%)}
+  .empty-year > div{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;width:280px}
+  .empty-year span{display:flex;flex-direction:column;gap:2px}
+  .empty-year i{display:block;height:11px;border-radius:3.5px}
+
+  /* Sieben Tage, alle sichtbar, gleich breit – kein horizontales Scrollen mehr */
+  .day-strip{display:flex;gap:6px}
+  .day-dot{flex:1;min-width:0;height:56px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+  .day-dot small{font-size:10px;color:var(--ink-soft);font-weight:600}
+  .day-dot b{font-size:12px;font-weight:600}
+  .day-dot .sw{width:8px;height:8px}
+  .day-dot .none{width:8px;height:8px;border-radius:50%;border:1.2px dashed var(--line-soft)}
+  .day-dot.sel{border:1.5px solid var(--berry);background:var(--berry-soft)}
+  .day-dot.sel small{color:var(--berry)}
+  /* Der erste Tag zeigt keine dreizehn leeren Karten, sondern einen Satz */
+  .first-day{display:flex;align-items:center;gap:14px}
+  .first-day .day-dot{flex:none;width:48px}
+  .first-day p{font-family:var(--hand);font-size:16px;line-height:1.3;font-weight:700}
 
   /* ─────────────────────────  DIALOG (ersetzt prompt/confirm)  ───────────────────────── */
   #dialog{position:fixed;inset:0;z-index:68;display:none;align-items:center;justify-content:center;
@@ -352,13 +526,13 @@
     background:var(--paper-deep);border:1.5px solid var(--line);border-radius:12px}
   .dlg input:focus{border-color:var(--berry);outline:none}
   .dlg-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
-  .btn.danger{background:var(--m-red);color:#fff}
+  .btn.danger{background:var(--danger-bg);color:var(--on-berry)}
 
   /* ─────────────────────────  PIN-SPERRE  ───────────────────────── */
   #lockScreen{position:fixed;inset:0;z-index:58;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:16px;text-align:center;padding:0 26px;
     background:var(--paper);
-    background-image:radial-gradient(circle, var(--dot) 1px, transparent 1.2px);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
     background-size:22px 22px}
   #lockScreen.show{display:flex}
   #lockScreen h1{font-size:36px}
@@ -382,8 +556,10 @@
 
 <!-- SVG-Filter: raue Filzstift-Kante -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="n"/>
-  <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/></filter>
+  <!-- Höhere Frequenz, kleinerer Versatz: die raue Kante trägt auch noch bei
+       9-px-Kleksen im Raster, wo 0.08 optisch verschwand. -->
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="1.7"/></filter>
 </svg>
 
 <!-- ═══════════════ SPLASH ═══════════════ -->
@@ -468,68 +644,70 @@
   <p class="mr-intro" id="mrIntro"></p>
   <div class="mr-body">
     <div class="card">
-      <span class="eyebrow" id="mrStatsQ">Dein Monat in Zahlen</span>
-      <div id="mrStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
+      <div class="mr-stats" id="mrStats"></div>
     </div>
     <div class="card">
       <span class="eyebrow" id="mrScaleQ">Wie war dieser Monat insgesamt?</span>
       <div class="mr-scale" id="mrScale"></div>
     </div>
     <div class="card">
-      <span class="eyebrow" id="mrNoteQ">Was bleibt dir von diesem Monat? <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
+      <span class="eyebrow" id="mrNoteQ">Was bleibt dir von diesem Monat? <small>(optional)</small></span>
       <textarea id="mrNote" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
   </div>
   <div class="mr-nav">
+    <button class="btn berry wide" id="mrSave">Review festhalten</button>
     <button class="btn ghost" id="mrSkip">Heute nicht</button>
-    <button class="btn berry" id="mrSave">Review festhalten</button>
   </div>
 </div>
 
 <!-- ═══════════════ HEUTE / CHECK-IN ═══════════════ -->
 <main id="screen-today" class="screen">
   <div id="backupBanner">
-    <p><b>Zeit für dein Backup.</b><br>Dein letztes liegt eine Weile zurück – einmal sichern dauert 10 Sekunden.</p>
-    <button class="btn small" id="bannerExport">Sichern</button>
+    <div class="bb-text">
+      <b id="bannerTitle">Dein letztes Backup ist eine Weile her.</b>
+      <span>Zehn Sekunden genügen – es eilt nicht.</span>
+    </div>
+    <button class="btn small line" id="bannerExport">Sichern</button>
   </div>
 
   <div class="screen-head">
-    <div>
-      <span class="eyebrow" id="todayDate"></span>
-      <h2 id="todayGreeting">Hey.</h2>
-      <p class="hint" id="todayHint" style="display:none"></p>
-    </div>
+    <span class="eyebrow" id="todayDate"></span>
+    <h2 id="todayGreeting" style="font-size:30px">Hey.</h2>
+    <p class="hint" id="todayHint" style="display:none"></p>
   </div>
 
-  <div class="day-strip" id="dayStrip"></div>
+  <div id="stripWrap">
+    <div class="day-strip" id="dayStrip" role="group" aria-label="Deine letzten sieben Tage – zum Nachtragen antippen"></div>
+  </div>
+  <div id="stripFirst" class="first-day" style="display:none"></div>
 
   <!-- Eingabe -->
   <div id="checkinForm">
-    <div class="card">
+    <div class="card" style="display:flex;flex-direction:column;gap:8px">
       <span class="eyebrow">Wie war dein Tag?</span>
       <div id="scaleRows"></div>
     </div>
-    <div class="card">
-      <span class="eyebrow">Was war heute los?</span>
-      <div class="chip-wrap" id="checkChips"></div>
+    <div class="card" style="margin-top:14px">
+      <span class="eyebrow" style="display:block;margin-bottom:14px">Was war heute los?</span>
+      <div id="checkChips"></div>
     </div>
-    <div class="card">
-      <span class="eyebrow">Notiz <small style="text-transform:none;letter-spacing:0">(optional)</small></span>
+    <div class="card" style="margin-top:14px">
+      <span class="eyebrow">Notiz <small>(optional)</small></span>
       <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
-    <button class="btn berry" id="saveEntry" style="width:100%;margin-top:14px">Fertig</button>
-    <p class="hint" style="text-align:center;margin-top:10px">Jeder Tipp wird sofort gespeichert – „Fertig" zeigt deine Zusammenfassung.</p>
   </div>
 
   <!-- Zusammenfassung nach dem Speichern -->
   <div id="checkinDone" style="display:none">
-    <div class="card">
+    <div class="card" style="display:flex;flex-direction:column;gap:12px;align-items:flex-start">
       <span class="hand" style="font-size:19px" id="doneHeadline">Festgehalten.</span>
       <div class="summary-line" id="doneSummary"></div>
-      <p id="doneNote" style="font-size:14px;color:var(--ink-soft);margin-top:10px;font-style:italic"></p>
-      <button class="btn line small" id="editEntry" style="margin-top:14px">Eintrag bearbeiten</button>
+      <p class="quote" id="doneNote" style="display:none"></p>
+      <button class="btn line small" id="editEntry">Eintrag bearbeiten</button>
     </div>
     <div id="impulseWrap"></div>
+    <div id="weekEcho"></div>
   </div>
 
   <div id="cycleCard"></div>
@@ -538,19 +716,37 @@
 
 <!-- ═══════════════ MONAT ═══════════════ -->
 <main id="screen-month" class="screen">
-  <div class="screen-head"><h2>Dein Monat</h2></div>
-  <div class="month-nav">
-    <button class="nav-arrow" id="prevMonth" aria-label="Voriger Monat">‹</button>
-    <span class="hand" id="monthTitle"></span>
-    <button class="nav-arrow" id="nextMonth" aria-label="Nächster Monat">›</button>
+  <div class="month-head">
+    <div>
+      <span class="eyebrow">Dein Monat</span>
+      <h2 class="hand" id="monthTitle" style="font-size:26px;line-height:1.1"></h2>
+    </div>
+    <div class="grow"></div>
+    <div class="seg" role="group" aria-label="Ansicht">
+      <button id="segWeek" aria-pressed="true">Woche</button>
+      <button id="segMonth" aria-pressed="false">Monat</button>
+    </div>
   </div>
-  <div class="grid-scroller"><div class="grid" id="monthGrid"></div></div>
-  <div class="legend">
-    <span><i class="sw" style="--c:var(--m-green)"></i> gut</span>
-    <span><i class="sw" style="--c:var(--m-yellow)"></i> mittel</span>
-    <span><i class="sw" style="--c:var(--m-red)"></i> schwer</span>
+  <div class="range-nav" id="rangeNav">
+    <button class="nav-arrow" id="rangePrev" aria-label="Zurück">‹</button>
+    <b id="rangeLabel"></b>
+    <button class="nav-arrow" id="rangeNext" aria-label="Weiter">›</button>
   </div>
-  <p class="hint">Häkchen-Themen malen in ihrer eigenen Markerfarbe. Tippe eine Zelle an, um den Tag nachzutragen.</p>
+  <div id="monthEmpty" class="card empty-state" style="display:none"></div>
+  <div id="monthGridWrap">
+    <div id="weekView">
+      <div class="week-card" id="weekGrid"></div>
+    </div>
+    <div id="fullView" style="display:none">
+      <div class="grid-scroller"><div class="grid" id="monthGrid"></div><div class="grid-fade"></div></div>
+    </div>
+    <div class="legend">
+      <span><i class="sw v-g" style="--c:var(--m-green)"></i> gut</span>
+      <span><i class="sw v-y r1" style="--c:var(--m-yellow)"></i> mittel</span>
+      <span><i class="sw v-r r2" style="--c:var(--m-red)"></i> schwer</span>
+    </div>
+    <p class="hint" id="monthHint">Tippe einen Tag zum Nachtragen – die ganze Spalte reagiert.</p>
+  </div>
 
   <div class="card" id="monthReviewCard" style="margin-top:14px;display:none">
     <span class="eyebrow">Dein Monatsreview</span>
@@ -579,19 +775,27 @@
 
 <!-- ═══════════════ JAHR ═══════════════ -->
 <main id="screen-year" class="screen">
-  <div class="screen-head">
+  <!-- Das Blättern sitzt im Kopf, damit Raster, Legende und Zahlen zusammen
+       über die Kante passen – vorher lag die Statistik immer darunter. -->
+  <div class="month-head">
     <div>
       <span class="eyebrow">Jahr in Farben</span>
-      <h2>Dein Jahr</h2>
+      <h2 class="hand" id="yearTitle" style="font-size:26px;line-height:1.1"></h2>
     </div>
-  </div>
-  <div class="month-nav">
+    <div class="grow"></div>
     <button class="nav-arrow" id="prevYear" aria-label="Voriges Jahr">‹</button>
-    <span class="hand" id="yearTitle"></span>
     <button class="nav-arrow" id="nextYear" aria-label="Nächstes Jahr">›</button>
   </div>
-  <div class="year-grid" id="yearGrid"></div>
-  <p class="hint">Jede Zelle ist ein Tag, die Farbe dein Gefühl. So malt sich dein Jahr von selbst – Lücken sind erlaubt.</p>
+  <div id="yearEmpty" class="card empty-state" style="display:none"></div>
+  <div id="yearGridWrap">
+    <div class="year-grid" id="yearGrid"></div>
+    <div class="legend">
+      <span><i class="sw v-g" style="--c:var(--m-green)"></i> gut</span>
+      <span><i class="sw v-y r1" style="--c:var(--m-yellow)"></i> mittel</span>
+      <span><i class="sw v-r r2" style="--c:var(--m-red)"></i> schwer</span>
+      <span>· leer = leeres Papier · ab morgen: noch frei</span>
+    </div>
+  </div>
   <div class="card" style="margin-top:14px">
     <span class="eyebrow" id="yearStatsQ">Dieser Monat in Zahlen</span>
     <div id="monthStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
@@ -650,7 +854,7 @@
 
   <div class="card">
     <span class="eyebrow">Deine Themen</span>
-    <p class="hint" style="margin:6px 0 4px">Halten und ziehen am ≡ ändert die Reihenfolge. Antippen zeigt Umbenennen und Löschen.</p>
+    <p class="hint" style="margin:6px 0 10px">Halten und ziehen am ≡ ändert die Reihenfolge. Antippen öffnet Umbenennen – und Löschen lässt sich sechs Sekunden zurücknehmen.</p>
     <div id="habitManager"></div>
     <div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
       <span class="eyebrow">Neues Thema</span>
@@ -674,7 +878,7 @@
     </div>
     <div class="set-row">
       <div><b>Alles zurücksetzen</b><div class="sub">Löscht sämtliche Einträge</div></div>
-      <button class="btn small line" id="resetBtn" style="color:var(--m-red)">Löschen</button>
+      <button class="btn small line warn" id="resetBtn">Löschen</button>
     </div>
   </div>
 
@@ -687,12 +891,23 @@
 </main>
 
 <!-- ═══════════════ TAB-BAR ═══════════════ -->
+<!-- „Fertig" haftet über der Tab-Bar, solange der Check-in offen ist -->
+<div id="saveBar">
+  <button class="btn berry wide" id="saveEntry">Fertig</button>
+</div>
+
 <nav id="tabbar" aria-label="Hauptnavigation">
   <button data-tab="today" class="on"><span class="ico">✎</span>Heute<span class="dot" id="todayDot"></span></button>
   <button data-tab="month"><span class="ico">▦</span>Monat</button>
-  <button data-tab="year"><span class="ico">❖</span>Jahr</button>
+  <button data-tab="year"><span class="ico">◆</span>Jahr</button>
   <button data-tab="more"><span class="ico">⋯</span>Mehr</button>
 </nav>
+
+<!-- Rücknahme nach dem Löschen (sechs Sekunden) -->
+<div id="undoBar" role="status">
+  <p id="undoText"></p>
+  <button id="undoBtn">Rückgängig</button>
+</div>
 
 <!-- ═══════════════ PIN-SPERRE ═══════════════ -->
 <div id="lockScreen" aria-label="Gesperrt">
@@ -719,7 +934,7 @@
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -738,6 +953,15 @@ const DEFAULT_HABITS = [
   {id:'erkaeltung',  label:'Erkältung',        type:'check', color:'yellow',order:10, active:true},
   {id:'intim',       label:'Intimität',        type:'check', color:'pink',  order:11, active:true},
   {id:'periode',     label:'Periode',          type:'check', color:'red',   order:12, active:true},
+];
+
+/* Stille Gruppen für die Häkchen-Chips: Körper · Innen · Außen.
+   Inhaltlich sehr verschiedene Dinge standen vorher als eine flache Wolke
+   nebeneinander. Eigene Themen bilden automatisch die letzte Gruppe. */
+const CHIP_GROUPS = [
+  ['sport','obst','erkaeltung','periode','intim'],
+  ['geweint','overthinking'],
+  ['soziales','streit','alkohol'],
 ];
 
 function defaultState(){
@@ -807,7 +1031,14 @@ const rot = seed => ((hashStr(seed)%13)-6)+'deg';
 function activeHabits(){return S.habits.filter(h=>h.active).sort((a,b)=>a.order-b.order)}
 function habitById(id){return S.habits.find(h=>h.id===id)}
 function habitColor(h,v){return h.type==='scale' ? SCALE_COLOR[v]||COLORS[h.color] : COLORS[h.color]}
-function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('show'),2400)}
+/* Zweiter Kanal neben der Farbe: Ampelwerte bekommen ihre Größenklasse mit.
+   Häkchen bleiben unverändert – dort trägt schon die Zeile die Bedeutung. */
+function swClass(h,v){ return (h && h.type==='scale' && SCALE_COLOR[v]) ? ' v-'+v : '' }
+const scaleClass = v => SCALE_COLOR[v] ? ' v-'+v : '';
+/* Vier Klecksformen, deterministisch aus demselben Hash wie die Rotation */
+const radClass = seed => ' r'+(hashStr(seed)%4);
+/* 6 s statt 2,4 s: ein Satz braucht Zeit, wenn er beim Erscheinen nicht angesehen wird */
+function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('show'),6000)}
 function daysBetween(a,b){return Math.floor((b-a)/86400000)}
 function offsetKey(base,off){const d=parseKey(base); d.setDate(d.getDate()+off); return keyOf(d)}
 /* Escaping für Text UND Attribute (deckt " und ' mit ab) */
@@ -921,12 +1152,21 @@ async function shareOrDownload(filename, mime, data){
 let viewDate = todayKey();
 let monthCursor = {y:new Date().getFullYear(), m:new Date().getMonth()};
 let activeTab = 'today';
+/* Die Woche ist der Einstieg in den Monat, das volle Raster der Zweitblick */
+let monthMode = 'week';
+const mondayOf = k => { const d=parseKey(k); const w=(d.getDay()+6)%7; d.setDate(d.getDate()-w); return keyOf(d) };
+let weekStart = mondayOf(todayKey());
 
 function switchTab(name){
   activeTab=name;
+  if(name!=='today'){ $('#saveBar').classList.remove('show'); $('#screen-today').classList.remove('checkin-open') }
   $$('#tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
   $$('.screen').forEach(s=>s.classList.toggle('active', s.id==='screen-'+name));
-  if(name==='month'){const d=parseKey(viewDate); monthCursor={y:d.getFullYear(), m:d.getMonth()}}
+  if(name==='month'){
+    const d=parseKey(viewDate);
+    monthCursor={y:d.getFullYear(), m:d.getMonth()};
+    weekStart=mondayOf(viewDate);
+  }
   if(name==='year') yearCursor=new Date().getFullYear();
   renderActive();
   const sc=$('#screen-'+name); if(sc) sc.scrollTop=0;
@@ -968,22 +1208,79 @@ function greeting(){
   return (h>=18||h<5) ? 'Guten Abend'+n+'.' : 'Hey'+n+'.';
 }
 
+/* Sieben Tage statt vierzehn: alle gleichzeitig sichtbar, ohne Scrollen.
+   Der Streifen wächst mit – am ersten Tag stehen hier keine leeren Karten für
+   Tage, die es noch gar nicht gab. Grenze ist der ältere Wert aus Einrichtung
+   und erstem Eintrag. */
+function stripFirstOffset(){
+  const tk=todayKey();
+  let first=tk;
+  const c=new Date(S.profile.createdAt);
+  if(!isNaN(c) && keyOf(c)<first) first=keyOf(c);
+  for(const k of Object.keys(S.entries)) if(k<first) first=k;
+  return Math.max(-6, -daysBetween(parseKey(first), parseKey(tk)));
+}
+
+function dayDot(k,sel){
+  const d=parseKey(k), e=S.entries[k];
+  const el=document.createElement('button'); el.className='day-dot'+(sel?' sel':'');
+  el.dataset.k=k;
+  el.tabIndex = sel?0:-1;
+  if(sel) el.setAttribute('aria-current','true');
+  el.setAttribute('aria-label', WD[d.getDay()]+' '+d.getDate()+'.'+(e?', eingetragen':', leer'));
+  const f=e?e.gefuehle:null;
+  const mark = f
+    ? `<i class="sw${radClass(k)}" style="--c:${SCALE_COLOR[f]};--r:${rot(k)}"></i>`
+    : (e ? `<i class="sw${radClass(k)}" style="--c:var(--ink-soft);--r:${rot(k)}"></i>`
+         : '<i class="none"></i>');
+  el.innerHTML=`<small>${WD[d.getDay()]}</small><b>${d.getDate()}</b>${mark}`;
+  el.addEventListener('click',()=>{viewDate=k; renderToday()});
+  return el;
+}
+
 function renderDayStrip(){
   const wrap=$('#dayStrip'); wrap.innerHTML='';
+  const first=$('#stripFirst'); first.innerHTML='';
   const tk=todayKey();
-  for(let off=-13; off<=0; off++){
-    const k=offsetKey(tk,off), d=parseKey(k), e=S.entries[k];
-    const el=document.createElement('button'); el.className='day-dot'+(k===viewDate?' sel':'');
-    el.setAttribute('aria-label', WD[d.getDay()]+' '+d.getDate()+'.'+(e?', eingetragen':', leer'));
-    let mark='';
-    if(e){const f=e.gefuehle; const c=f?SCALE_COLOR[f]:'var(--ink-soft)';
-      mark=`<i class="sw" style="--c:${c};--r:${rot(k)}"></i>`}
-    el.innerHTML=`<small>${WD[d.getDay()]}</small><b>${d.getDate()}</b>${mark}`;
-    el.addEventListener('click',()=>{viewDate=k; renderToday()});
-    wrap.appendChild(el);
+  const from=stripFirstOffset();
+  /* Erster Tag: eine Karte und ein Satz statt sieben leerer Felder */
+  const alone = from===0;
+  $('#stripWrap').style.display = alone?'none':'block';
+  first.style.display = alone?'flex':'none';
+  if(alone){
+    first.appendChild(dayDot(tk,true));
+    const p=document.createElement('p');
+    p.textContent='Dein erster Tag. Ab morgen wächst hier deine Woche – Feld für Feld.';
+    first.appendChild(p);
+    return;
   }
-  wrap.scrollLeft=wrap.scrollWidth;
+
+  for(let off=from; off<=0; off++){
+    const k=offsetKey(tk,off);
+    wrap.appendChild(dayDot(k, k===viewDate));
+  }
+  /* Kein tabbarer Tag getroffen (Nachtrag außerhalb des Streifens)? Dann der letzte. */
+  if(!wrap.querySelector('[tabindex="0"]')){
+    const last=wrap.lastElementChild; if(last) last.tabIndex=0;
+  }
 }
+
+/* Pfeiltasten-Navigation im Streifen – erst danach kommt die erste Frage des Tages */
+$('#dayStrip').addEventListener('keydown',ev=>{
+  const keys={ArrowLeft:-1, ArrowRight:1, Home:'first', End:'last'};
+  if(!(ev.key in keys)) return;
+  const items=[...$('#dayStrip').children];
+  const i=items.indexOf(document.activeElement);
+  if(i<0) return;
+  ev.preventDefault();
+  const step=keys[ev.key];
+  const t = step==='first' ? 0 : step==='last' ? items.length-1
+          : Math.min(items.length-1, Math.max(0, i+step));
+  items[t].focus();
+  viewDate=items[t].dataset.k;
+  renderToday();
+  const again=$('#dayStrip').children[t]; if(again) again.focus();
+});
 
 function renderToday(){
   const d=parseKey(viewDate); const isToday=viewDate===todayKey();
@@ -994,11 +1291,19 @@ function renderToday(){
   refreshBanner();
   updateTodayDot();
   const has = !!S.entries[viewDate];
-  $('#checkinForm').style.display = has?'none':'block';
-  $('#checkinDone').style.display = has?'block':'none';
+  setCheckinOpen(!has);
   if(has) renderDone(); else renderForm();
   renderCycleCard();
   renderMemoryCard();
+}
+
+/* Der haftende „Fertig"-Balken gehört zum offenen Check-in – und nur dorthin */
+function setCheckinOpen(open){
+  $('#checkinForm').style.display = open?'block':'none';
+  $('#checkinDone').style.display = open?'none':'block';
+  const show = open && activeTab==='today';
+  $('#saveBar').classList.toggle('show', show);
+  $('#screen-today').classList.toggle('checkin-open', show);
 }
 
 /* ═══════════════════════ ZYKLUS-INTELLIGENZ ═══════════════════════ */
@@ -1067,15 +1372,15 @@ function renderMemoryCard(){
   const chips=activeHabits()
     .filter(h=>e[h.id])
     .slice(0,4)
-    .map(h=>`<span class="chip sel" style="pointer-events:none;min-height:34px;font-size:13.5px">
-      <i class="sw" style="--c:${habitColor(h,e[h.id])};--r:${rot(k+h.id)}"></i>${esc(h.label)}</span>`)
+    .map(h=>`<span class="schip">
+      <i class="sw${swClass(h,e[h.id])}${radClass(h.id)}" style="--c:${habitColor(h,e[h.id])};--r:${rot(k+h.id)}"></i>${esc(h.label)}</span>`)
     .join('');
   const card=document.createElement('div');
-  card.className='card'; card.style.marginTop='14px';
+  card.className='card'; card.style.marginTop='12px';
   card.innerHTML=`<span class="eyebrow">Vor einem Jahr</span>
     <p class="hint" style="margin-top:6px">${WD[prev.getDay()]}, ${prev.getDate()}. ${MONTHS[prev.getMonth()]} ${prev.getFullYear()} – so sah dieser Tag auf deiner letzten Seite aus.</p>
-    ${chips?`<div class="summary-line">${chips}</div>`:''}
-    ${e.note?`<p style="font-size:14px;color:var(--ink-soft);margin-top:10px;font-style:italic">„${esc(e.note)}"</p>`:''}`;
+    ${chips?`<div class="summary-line" style="margin-top:10px">${chips}</div>`:''}
+    ${e.note?`<p class="quote" style="margin-top:10px">„${esc(e.note)}"</p>`:''}`;
   w.appendChild(card);
 }
 
@@ -1104,32 +1409,54 @@ function renderForm(){
   const sr=$('#scaleRows'); sr.innerHTML='';
   activeHabits().filter(h=>h.type==='scale').forEach(h=>{
     const row=document.createElement('div'); row.className='scale-row';
-    row.innerHTML=`<span class="pill-label">${esc(h.label)}</span>
+    /* Beschriftet wie im Monatsreview: dieselbe Frage, dasselbe Antwortmuster.
+       Damit hängt „gut / mittel / schwer" nicht länger allein an der Farbe. */
+    row.innerHTML=`<span class="pill-label">${esc(h.label)}</span><span class="grow"></span>
       <div class="scale-opts">${['g','y','r'].map(v=>`
-        <button class="scale-btn${draft[h.id]===v?' sel':''}" data-h="${esc(h.id)}" data-v="${v}" aria-label="${esc(h.label)}: ${v==='g'?'gut':v==='y'?'mittel':'schwer'}">
-          <i class="sw" style="--c:${SCALE_COLOR[v]};--r:${rot(viewDate+h.id+v)}"></i>
+        <button class="scale-btn${draft[h.id]===v?' sel':''}" data-h="${esc(h.id)}" data-v="${v}"
+                aria-pressed="${draft[h.id]===v}" aria-label="${esc(h.label)}: ${SCALE_NAMES[v]}">
+          <span class="swp"><i class="sw v-${v}${radClass(h.id+v)}" style="--c:${SCALE_COLOR[v]};--r:${rot(viewDate+h.id+v)}"></i></span>
+          <small>${SCALE_NAMES[v]}</small>
         </button>`).join('')}</div>`;
     sr.appendChild(row);
   });
   sr.querySelectorAll('.scale-btn').forEach(b=>b.addEventListener('click',()=>{
     const h=b.dataset.h, v=b.dataset.v;
     draft[h] = (draft[h]===v)? undefined : v;
-    sr.querySelectorAll(`[data-h="${CSS.escape(h)}"]`).forEach(x=>x.classList.toggle('sel', x.dataset.v===draft[h]));
+    sr.querySelectorAll(`[data-h="${CSS.escape(h)}"]`).forEach(x=>{
+      const on = x.dataset.v===draft[h];
+      x.classList.toggle('sel', on);
+      x.setAttribute('aria-pressed', on);
+    });
     if(draft[h]){ b.querySelector('.sw').classList.add('draw'); buzz() }
     commitDraft();
   }));
 
+  /* Chips in stillen Gruppen: Körper, Innen, Außen. Innerhalb bleibt die
+     eigene Reihenfolge aus dem Themen-Manager erhalten; eigene Themen
+     stehen als letzte Gruppe. Keine Überschriften – ein Abstand genügt. */
   const cc=$('#checkChips'); cc.innerHTML='';
-  activeHabits().filter(h=>h.type==='check').forEach(h=>{
-    const c=document.createElement('button'); c.className='chip'+(draft[h.id]?' sel':'');
-    c.innerHTML=`<i class="sw" style="--c:${COLORS[h.color]};--r:${rot(viewDate+h.id)}"></i>${esc(h.label)}`;
-    c.addEventListener('click',()=>{
-      draft[h.id]=!draft[h.id]||undefined;
-      c.classList.toggle('sel', !!draft[h.id]);
-      if(draft[h.id]){ c.querySelector('.sw').classList.add('draw'); buzz() }
-      commitDraft();
+  const checks=activeHabits().filter(h=>h.type==='check');
+  const grouped=CHIP_GROUPS.map(ids=>checks.filter(h=>ids.includes(h.id)));
+  const known=new Set(CHIP_GROUPS.flat());
+  grouped.push(checks.filter(h=>!known.has(h.id)));
+  grouped.filter(g=>g.length).forEach(group=>{
+    const wrap=document.createElement('div'); wrap.className='chip-wrap chip-group';
+    group.forEach(h=>{
+      const c=document.createElement('button'); c.className='chip'+(draft[h.id]?' sel':'');
+      c.setAttribute('aria-pressed', !!draft[h.id]);
+      c.style.setProperty('--c', COLORS[h.color]);
+      c.innerHTML=`<i class="sw${radClass(h.id)}" style="--c:${COLORS[h.color]};--r:${rot(viewDate+h.id)}"></i>${esc(h.label)}`;
+      c.addEventListener('click',()=>{
+        draft[h.id]=!draft[h.id]||undefined;
+        c.classList.toggle('sel', !!draft[h.id]);
+        c.setAttribute('aria-pressed', !!draft[h.id]);
+        if(draft[h.id]){ c.querySelector('.sw').classList.add('draw'); buzz() }
+        commitDraft();
+      });
+      wrap.appendChild(c);
     });
-    cc.appendChild(c);
+    cc.appendChild(wrap);
   });
   $('#noteInput').value = e.note||'';
 }
@@ -1157,16 +1484,55 @@ function renderDone(){
   const sum=$('#doneSummary'); sum.innerHTML='';
   activeHabits().forEach(h=>{
     const v=e[h.id]; if(!v) return;
-    const chip=document.createElement('span'); chip.className='chip sel';
-    chip.innerHTML=`<i class="sw draw" style="--c:${habitColor(h,v)};--r:${rot(viewDate+h.id)}"></i>${esc(h.label)}`;
+    /* Ampelwerte stehen als Wort im Chip – Farbe und Größe allein müssen nicht tragen */
+    const word = h.type==='scale' && SCALE_NAMES[v] ? ' '+SCALE_NAMES[v] : '';
+    const chip=document.createElement('span'); chip.className='schip';
+    chip.innerHTML=`<i class="sw draw${swClass(h,v)}${radClass(h.id)}" style="--c:${habitColor(h,v)};--r:${rot(viewDate+h.id)}"></i>${esc(h.label)}${word}`;
     sum.appendChild(chip);
   });
-  $('#doneNote').textContent = e.note? '„'+e.note+'"' : '';
+  const note=$('#doneNote');
+  note.style.display = e.note?'block':'none';
+  note.textContent = e.note? '„'+e.note+'"' : '';
+  renderWeekEcho();
   renderImpulses();
 }
-$('#editEntry').addEventListener('click',()=>{
-  $('#checkinForm').style.display='block'; $('#checkinDone').style.display='none'; renderForm();
-});
+
+/* Ruhiger Nachklang statt leerer Fläche: die Woche als stille Farbreihe, dazu
+   ein Satz von vor einem Monat. Kein Statistik-Block, keine Zählung
+   ausgelassener Tage – nur das Bild. */
+function renderWeekEcho(){
+  const w=$('#weekEcho'); w.innerHTML='';
+  const from=stripFirstOffset();
+  if(from > -2) return;                       /* zu früh für einen Rückblick */
+  const days=[];
+  for(let off=from; off<=0; off++) days.push(offsetKey(viewDate,off));
+  const cells=days.map(k=>{
+    const e=S.entries[k], d=parseKey(k);
+    const f=e?e.gefuehle:null;
+    const mark = f
+      ? `<i class="sw${radClass(k)}" style="--c:${SCALE_COLOR[f]};--r:${rot(k)};width:13px;height:13px"></i>`
+      : `<i style="width:13px;height:13px;border-radius:50%;border:1.2px dashed var(--line-soft);box-sizing:border-box"></i>`;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+      ${mark}<small style="font-size:10px;font-weight:600;color:var(--ink-soft)">${WD[d.getDay()]}</small></div>`;
+  }).join('');
+
+  /* Der Satz von vor einem Monat, wenn es ihn gibt */
+  const d=parseKey(viewDate);
+  const prev=new Date(d.getFullYear(), d.getMonth()-1, d.getDate());
+  let back='';
+  if(prev.getDate()===d.getDate()){
+    const pe=S.entries[keyOf(prev)];
+    if(pe && pe.note) back=`<div style="border-top:1px solid var(--hair);padding-top:10px;
+      font-size:13px;line-height:1.5;color:var(--ink-soft)">Vor einem Monat schriebst du:
+      <span style="color:var(--ink)">„${esc(pe.note)}"</span></div>`;
+  }
+  const card=document.createElement('div');
+  card.className='card'; card.style.cssText='margin-top:12px;display:flex;flex-direction:column;gap:12px';
+  card.innerHTML=`<span class="eyebrow">Deine Woche in Farbe</span>
+    <div style="display:flex;justify-content:space-between;padding:0 6px" aria-hidden="true">${cells}</div>${back}`;
+  w.appendChild(card);
+}
+$('#editEntry').addEventListener('click',()=>{ setCheckinOpen(true); renderForm() });
 
 /* ═══════════════════════ IMPULSE ═══════════════════════ */
 /* Regelbasiert, offline, max. 2 Karten. Tonalität: warm, per Du, nie diagnostisch.
@@ -1296,17 +1662,18 @@ let mrKind='month', mrKey=null, mrManual=false, mrDraft={};
 function renderMrScale(){
   const w=$('#mrScale'); w.innerHTML='';
   ['g','y','r'].forEach(v=>{
-    const col=document.createElement('div');
-    col.style.cssText='display:flex;flex-direction:column;align-items:center;gap:5px';
-    col.innerHTML=`<button class="scale-btn${mrDraft.gefuehl===v?' sel':''}" data-v="${v}" aria-label="Insgesamt: ${SCALE_NAMES[v]}">
-        <i class="sw${mrDraft.gefuehl===v?' draw':''}" style="--c:${SCALE_COLOR[v]};--r:${rot(mrKey+'review'+v)}"></i>
-      </button><small>${SCALE_NAMES[v]}</small>`;
-    col.querySelector('button').addEventListener('click',()=>{
+    const b=document.createElement('button');
+    b.className='scale-btn'+(mrDraft.gefuehl===v?' sel':'');
+    b.setAttribute('aria-pressed', mrDraft.gefuehl===v);
+    b.setAttribute('aria-label','Insgesamt: '+SCALE_NAMES[v]);
+    b.innerHTML=`<span class="swp"><i class="sw v-${v}${radClass('review'+v)}${mrDraft.gefuehl===v?' draw':''}"
+        style="--c:${SCALE_COLOR[v]};--r:${rot(mrKey+'review'+v)}"></i></span><small>${SCALE_NAMES[v]}</small>`;
+    b.addEventListener('click',()=>{
       mrDraft.gefuehl = (mrDraft.gefuehl===v)? undefined : v;
       renderMrScale();
       if(mrDraft.gefuehl) buzz();
     });
-    w.appendChild(col);
+    w.appendChild(b);
   });
 }
 function openReview(kind,key,manual){
@@ -1315,7 +1682,6 @@ function openReview(kind,key,manual){
   if(ex && ex.gefuehl) mrDraft.gefuehl=ex.gefuehl;
   const word = kind==='year'?'Jahr':'Monat';
   $('#mrEyebrow').textContent = kind==='year'?'Jahresreview':'Monatsreview';
-  $('#mrStatsQ').textContent = kind==='year'?'Dein Jahr in Zahlen':'Dein Monat in Zahlen';
   $('#mrScaleQ').textContent = 'Wie war '+(kind==='year'?'dieses Jahr':'dieser Monat')+' insgesamt?';
   $('#mrNoteQ').innerHTML = 'Was bleibt dir von diesem '+word+'? <small style="text-transform:none;letter-spacing:0">(optional)</small>';
   $('#mrSkip').textContent = manual?'Abbrechen':'Heute nicht';
@@ -1412,9 +1778,9 @@ function renderMonthReviewCard(){
   if(!r && !isPast){ card.style.display='none'; return }
   card.style.display='block';
   $('#monthReviewBody').innerHTML = r
-    ? (r.gefuehl?`<span class="chip sel" style="pointer-events:none;min-height:36px;font-size:14px">
-        <i class="sw" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(mk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span>`:'')+
-      (r.note?`<p style="font-size:14px;line-height:1.5;font-style:italic;margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'')+
+    ? (r.gefuehl?`<span class="summary-line"><span class="schip">
+        <i class="sw v-${r.gefuehl}${radClass('review')}" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(mk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span></span>`:'')+
+      (r.note?`<p class="quote" style="margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'')+
       `<button class="btn small line" data-mr-edit style="margin-top:12px">Bearbeiten</button>`
     : `<p class="hint" style="margin-top:0">Für diesen Monat gibt es noch kein Review.</p>
        <button class="btn small line" data-mr-edit style="margin-top:10px">Review nachtragen</button>`;
@@ -1422,21 +1788,110 @@ function renderMonthReviewCard(){
 }
 
 /* ═══════════════════════ MONAT ═══════════════════════ */
+/* Ein Tag ist immer über die ganze Spalte erreichbar: jede Zelle und der
+   Datumskopf springen in den Nachtrag. */
+function openDay(k){
+  if(k>todayKey()){ toast('Der Tag kommt erst noch'); return }
+  viewDate=k; switchTab('today');
+}
+
 function renderMonth(){
+  const inWeek = monthMode==='week';
+  const ws = inWeek ? weekStart : null;
+  /* In der Wochenansicht folgt der Monatszeiger der Woche – Review und
+     Notizverlauf zeigen damit immer den Monat, der oben im Titel steht. */
+  if(inWeek){ const d=parseKey(ws); monthCursor={y:d.getFullYear(), m:d.getMonth()} }
   const {y,m}=monthCursor;
   $('#monthTitle').textContent=MONTHS[m]+' '+y;
+  $('#segWeek').classList.toggle('on',inWeek);
+  $('#segMonth').classList.toggle('on',!inWeek);
+  $('#segWeek').setAttribute('aria-pressed',inWeek);
+  $('#segMonth').setAttribute('aria-pressed',!inWeek);
+
+  if(inWeek){
+    const a=parseKey(ws), b=parseKey(offsetKey(ws,6));
+    $('#rangeLabel').textContent = WD[a.getDay()]+' '+a.getDate()+'. '+MONTHS[a.getMonth()]+
+      ' – '+WD[b.getDay()]+' '+b.getDate()+'. '+MONTHS[b.getMonth()];
+  }else{
+    $('#rangeLabel').textContent = MONTHS[m]+' '+y;
+  }
+
+  /* Leerer Monat: kein leeres Raster mit Aufforderung ins Nichts */
   const days=new Date(y,m+1,0).getDate();
+  let any=false;
+  for(let d=1;d<=days;d++) if(S.entries[y+'-'+pad(m+1)+'-'+pad(d)]){ any=true; break }
+  $('#monthEmpty').style.display = any?'none':'flex';
+  $('#monthGridWrap').style.display = any?'block':'none';
+  $('#rangeNav').style.display = any?'flex':'none';
+  if(!any){
+    renderEmptyMonth(MONTHS[m]);
+    renderMonthReviewCard();
+    renderNoteHistory();
+    return;
+  }
+
+  $('#weekView').style.display = inWeek?'block':'none';
+  $('#fullView').style.display = inWeek?'none':'block';
+  if(inWeek) renderWeekGrid(ws); else renderFullGrid(y,m,days);
+
+  renderMonthReviewCard();
+  renderNoteHistory();
+}
+
+/* Woche: sieben Tage ganz sichtbar, große Ziele, Zukunft bleibt leeres Papier */
+function renderWeekGrid(ws){
+  const g=$('#weekGrid'); g.innerHTML='';
+  const tk=todayKey();
+  const keys=[]; for(let i=0;i<7;i++) keys.push(offsetKey(ws,i));
+
+  const head=document.createElement('div'); head.className='week-row head';
+  head.innerHTML='<span class="w-lab" style="border:none"></span>';
+  keys.forEach(k=>{
+    const d=parseKey(k);
+    const b=document.createElement('button');
+    b.className='w-day'+(k===tk?' today':'');
+    b.setAttribute('aria-label','Zum '+d.getDate()+'. '+MONTHS[d.getMonth()]);
+    b.innerHTML=`<small>${WD[d.getDay()]}</small><b>${d.getDate()}</b>`;
+    b.addEventListener('click',()=>openDay(k));
+    head.appendChild(b);
+  });
+  g.appendChild(head);
+
+  activeHabits().forEach(h=>{
+    const row=document.createElement('div'); row.className='week-row';
+    row.innerHTML=`<span class="w-lab">${esc(h.label)}</span>`;
+    keys.forEach(k=>{
+      const e=S.entries[k]; const val=e?e[h.id]:undefined;
+      const cell=document.createElement('button'); cell.className='w-cell';
+      cell.setAttribute('aria-label',h.label+' am '+parseKey(k).getDate()+'. '+
+        MONTHS[parseKey(k).getMonth()]+(val?', gesetzt':', leer'));
+      if(val) cell.innerHTML=`<i class="sw${swClass(h,val)}${radClass(k+h.id)}" style="--c:${habitColor(h,val)};--r:${rot(k+h.id)}"></i>`;
+      cell.addEventListener('click',()=>openDay(k));
+      row.appendChild(cell);
+    });
+    g.appendChild(row);
+  });
+}
+
+/* Volles Raster kompakt: Labelspalte 84 px, Spalten 26 px – elf Tage sichtbar */
+function renderFullGrid(y,m,days){
   const g=$('#monthGrid'); g.innerHTML='';
-  g.style.gridTemplateColumns=`118px repeat(${days},30px)`;
+  g.style.gridTemplateColumns=`84px repeat(${days},26px)`;
   const tk=todayKey(); const tkParts=tk.split('-');
   const isThisMonth = (+tkParts[0]===y && +tkParts[1]===m+1);
 
-  g.style.gridTemplateRows='42px';
+  g.style.gridTemplateRows='24px';
   g.insertAdjacentHTML('beforeend','<div class="g-corner"></div>');
   for(let d=1;d<=days;d++){
     const today = isThisMonth && +tkParts[2]===d;
     const dow=new Date(y,m,d).getDay(); const we=dow===0||dow===6;
-    g.insertAdjacentHTML('beforeend',`<div class="g-day${today?' today':''}${we?' we':''}">${d}<em>${WD[dow]}</em></div>`);
+    const k=y+'-'+pad(m+1)+'-'+pad(d);
+    const b=document.createElement('button');
+    b.className='g-day'+(today?' today':'')+(we?' we':'');
+    b.setAttribute('aria-label','Zum '+d+'. '+MONTHS[m]);
+    b.innerHTML=`<span>${d}</span>`;
+    b.addEventListener('click',()=>openDay(k));
+    g.appendChild(b);
   }
   activeHabits().forEach(h=>{
     g.insertAdjacentHTML('beforeend',`<div class="g-label"><span>${esc(h.label)}</span></div>`);
@@ -1445,28 +1900,56 @@ function renderMonth(){
       const e=S.entries[k]; const val=e?e[h.id]:undefined;
       const today = isThisMonth && +tkParts[2]===d;
       const dow=new Date(y,m,d).getDay(); const we=dow===0||dow===6;
-      const future = k>tk;
       const cell=document.createElement('button');
-      cell.className='g-cell'+(we?' we':'')+(today?' today-col':'')+(future?' future':'');
-      cell.setAttribute('aria-label',h.label+' am '+d+'. '+MONTHS[m]);
-      if(val) cell.innerHTML=`<i class="sw" style="--c:${habitColor(h,val)};--r:${rot(k+h.id)}"></i>`;
-      cell.addEventListener('click',()=>{
-        if(future){ toast('Der Tag kommt erst noch'); return }
-        viewDate=k; switchTab('today');
-      });
+      cell.className='g-cell'+(we?' we':'')+(today?' today-col':'');
+      cell.setAttribute('aria-label',h.label+' am '+d+'. '+MONTHS[m]+(val?', gesetzt':', leer'));
+      if(val) cell.innerHTML=`<i class="sw${swClass(h,val)}${radClass(k+h.id)}" style="--c:${habitColor(h,val)};--r:${rot(k+h.id)}"></i>`;
+      cell.addEventListener('click',()=>openDay(k));
       g.appendChild(cell);
     }
   });
-  /* Im aktuellen Monat direkt zur Heute-Spalte scrollen */
+  /* Der Monat öffnet bei heute */
   if(isThisMonth){
     const sc=$('.grid-scroller');
-    sc.scrollLeft=Math.max(0, 30*(+tkParts[2])-(sc.clientWidth-118)/2-15);
+    sc.scrollLeft=Math.max(0, 26*(+tkParts[2])-(sc.clientWidth-84)/2-13);
   }
-  renderMonthReviewCard();
-  renderNoteHistory();
 }
-$('#prevMonth').addEventListener('click',()=>{monthCursor.m--; if(monthCursor.m<0){monthCursor.m=11;monthCursor.y--} renderMonth()});
-$('#nextMonth').addEventListener('click',()=>{monthCursor.m++; if(monthCursor.m>11){monthCursor.m=0;monthCursor.y++} renderMonth()});
+
+/* Leerer Monat (1h): ein Satz, ein gedämpftes Beispiel, genau eine Handlung */
+function renderEmptyMonth(monthName){
+  const rows=[];
+  for(let r=0;r<6;r++){
+    const cells=[];
+    for(let c=0;c<10;c++){
+      const seed=r*13+c*7;
+      const col=[COLORS.green,COLORS.yellow,COLORS.red,COLORS.blue,COLORS.pink][hashStr('demo'+seed)%5];
+      const on=hashStr('demoOn'+seed)%5<3;
+      cells.push(`<i style="background:${on?col:'transparent'}"></i>`);
+    }
+    rows.push('<div>'+cells.join('')+'</div>');
+  }
+  $('#monthEmpty').innerHTML=`
+    <h3>Noch leeres Papier.</h3>
+    <p>Hier malt sich dein Monat, Zeile für Zeile. Ein Eintrag am Abend genügt – den Rest mache ich.</p>
+    <div class="empty-demo" aria-hidden="true">${rows.join('')}</div>
+    <span class="cap">So könnte dein ${esc(monthName)} aussehen</span>
+    <button class="btn berry" data-empty-today>Heute eintragen</button>`;
+  $('#monthEmpty').querySelector('[data-empty-today]')
+    .addEventListener('click',()=>{ viewDate=todayKey(); switchTab('today') });
+}
+
+$('#segWeek').addEventListener('click',()=>{ monthMode='week'; weekStart=mondayOf(viewDate); renderMonth() });
+$('#segMonth').addEventListener('click',()=>{ monthMode='month'; renderMonth() });
+$('#rangePrev').addEventListener('click',()=>{
+  if(monthMode==='week') weekStart=offsetKey(weekStart,-7);
+  else { monthCursor.m--; if(monthCursor.m<0){monthCursor.m=11;monthCursor.y--} }
+  renderMonth();
+});
+$('#rangeNext').addEventListener('click',()=>{
+  if(monthMode==='week') weekStart=offsetKey(weekStart,7);
+  else { monthCursor.m++; if(monthCursor.m>11){monthCursor.m=0;monthCursor.y++} }
+  renderMonth();
+});
 
 function renderNoteHistory(){
   const {y,m}=monthCursor;
@@ -1483,11 +1966,11 @@ function renderNoteHistory(){
   items.forEach(({k,d,e})=>{
     const wd=WD[parseKey(k).getDay()];
     const c=e.gefuehle?SCALE_COLOR[e.gefuehle]:'var(--ink-soft)';
-    const row=document.createElement('button'); row.className='note-item'; row.style.width='100%';
+    const row=document.createElement('button'); row.className='note-item';
     row.setAttribute('aria-label','Notiz vom '+d+'. '+MONTHS[m]);
-    row.innerHTML=`<span class="nd"><small>${wd}</small><b>${d}.</b></span>
-      <i class="sw" style="--c:${c};--r:${rot(k)}"></i>
-      <span class="nt">„${esc(e.note)}"</span>`;
+    row.innerHTML=`<span class="nd">${wd} ${d}.</span>
+      <i class="sw${radClass(k)}" style="--c:${c};--r:${rot(k)}"></i>
+      <span class="nt">${esc(e.note)}</span>`;
     row.addEventListener('click',()=>{viewDate=k; switchTab('today')});
     list.appendChild(row);
   });
@@ -1512,20 +1995,78 @@ function renderYear(){
   $('#yearTitle').textContent=y;
   $('#prevYear').style.visibility = y>span.min?'visible':'hidden';
   $('#nextYear').style.visibility = y<span.max?'visible':'hidden';
-  const g=$('#yearGrid'); g.innerHTML='';
-  'JFMAMJJASOND'.split('').forEach(c=>g.insertAdjacentHTML('beforeend',`<div class="y-head">${c}</div>`));
-  for(let d=1;d<=31;d++){
-    for(let m=0;m<12;m++){
-      const valid = d<=new Date(y,m+1,0).getDate();
-      let cls='y-cell'+(valid?'':' off');
-      if(valid){const e=S.entries[y+'-'+pad(m+1)+'-'+pad(d)];
-        if(e&&e.gefuehle) cls+=' '+e.gefuehle}
-      g.insertAdjacentHTML('beforeend',`<div class="${cls}"></div>`);
-    }
+
+  /* Ungemaltes Jahr: die Vorfreude auf die Farbfläche ist das Argument */
+  const logged=yearSummary(y).logged;
+  $('#yearEmpty').style.display = logged?'none':'flex';
+  $('#yearGridWrap').style.display = logged?'block':'none';
+  if(!logged){
+    renderEmptyYear();
+    renderYearStats(); renderYearReviewCard(); renderCorrelations();
+    return;
   }
+
+  const g=$('#yearGrid'); g.innerHTML='';
+  const tk=todayKey();
+  const initials='JFMAMJJASOND'.split('');
+  for(let m=0;m<12;m++){
+    const col=document.createElement('div'); col.className='y-col';
+    /* Die angetippte Initiale nennt den Monat – „J" steht dreimal da */
+    const tip=document.createElement('span'); tip.className='y-tip'; tip.textContent=MONTHS[m];
+    const head=document.createElement('button'); head.className='y-head';
+    head.textContent=initials[m]; head.setAttribute('aria-label',MONTHS[m]+' '+y);
+    head.addEventListener('click',()=>{
+      const open=tip.classList.contains('show');
+      $$('#yearGrid .y-tip').forEach(t=>t.classList.remove('show'));
+      $$('#yearGrid .y-head').forEach(h=>h.classList.remove('on'));
+      tip.classList.toggle('show',!open);
+      head.classList.toggle('on',!open);
+    });
+    col.appendChild(tip); col.appendChild(head);
+    const dim=new Date(y,m+1,0).getDate();
+    for(let d=1;d<=31;d++){
+      const cell=document.createElement('span');
+      if(d>dim){ cell.className='y-cell off'; col.appendChild(cell); continue }
+      const k=y+'-'+pad(m+1)+'-'+pad(d);
+      const e=S.entries[k];
+      /* Was noch kommt, ist „noch frei" – nicht „versäumt" */
+      let cls='y-cell'+(k>tk?' fut':'');
+      if(e&&e.gefuehle) cls+=' '+e.gefuehle;
+      if(k===tk) cls+=' today';
+      cell.className=cls;
+      col.appendChild(cell);
+    }
+    g.appendChild(col);
+  }
+  /* 372 unbeschriftete Felder wären für VoiceOver nur Rauschen – ein Satz reicht */
+  const s=yearSummary(y);
+  g.setAttribute('role','img');
+  g.setAttribute('aria-label',`Jahresraster ${y}: ${s.logged} Tage festgehalten, `+
+    `${s.g} mal grün, ${s.ye} mal gelb, ${s.r} mal rot gefühlt.`);
+
   renderYearStats();
   renderYearReviewCard();
   renderCorrelations();
+}
+
+/* Ungemaltes Jahr (1k) */
+function renderEmptyYear(){
+  const cols=[];
+  for(let m=0;m<12;m++){
+    const days=[];
+    for(let d=1;d<=31;d++){
+      const col=[COLORS.green,COLORS.yellow,COLORS.red][hashStr('yd'+m+'-'+d)%3];
+      days.push(`<i style="background:${col}"></i>`);
+    }
+    cols.push('<span>'+days.join('')+'</span>');
+  }
+  $('#yearEmpty').innerHTML=`
+    <h3>Dein Jahr, noch ungemalt.</h3>
+    <p>365 Felder, jeden Abend eins. Im Dezember siehst du dein Jahr als eine Fläche aus Farbe.</p>
+    <div class="empty-year" aria-hidden="true"><div>${cols.join('')}</div></div>
+    <button class="btn berry" data-empty-today>Heute eintragen</button>`;
+  $('#yearEmpty').querySelector('[data-empty-today]')
+    .addEventListener('click',()=>{ viewDate=todayKey(); switchTab('today') });
 }
 
 /* Statistik ehrlich aus den aktiven Themen – nichts mehr hart verdrahtet */
@@ -1565,9 +2106,9 @@ function renderYearReviewCard(){
   if(!r && !isPast){ card.style.display='none'; return }
   card.style.display='block';
   $('#yearReviewBody').innerHTML = r
-    ? (r.gefuehl?`<span class="chip sel" style="pointer-events:none;min-height:36px;font-size:14px">
-        <i class="sw" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(yk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span>`:'')+
-      (r.note?`<p style="font-size:14px;line-height:1.5;font-style:italic;margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'')+
+    ? (r.gefuehl?`<span class="summary-line"><span class="schip">
+        <i class="sw v-${r.gefuehl}${radClass('review')}" style="--c:${SCALE_COLOR[r.gefuehl]};--r:${rot(yk+'review')}"></i>Insgesamt ${SCALE_NAMES[r.gefuehl]}</span></span>`:'')+
+      (r.note?`<p class="quote" style="margin-top:${r.gefuehl?'10px':'0'}">„${esc(r.note)}"</p>`:'')+
       `<button class="btn small line" data-yr-edit style="margin-top:12px">Bearbeiten</button>`
     : `<p class="hint" style="margin-top:0">Für ${yearCursor} gibt es noch kein Review.</p>
        <button class="btn small line" data-yr-edit style="margin-top:10px">Review nachtragen</button>`;
@@ -1631,6 +2172,8 @@ function renderThemePicker(){
   THEMES.forEach(t=>{
     const b=document.createElement('button');
     b.className='chip'+(S.settings.theme===t.id?' sel':'');
+    b.setAttribute('aria-pressed', S.settings.theme===t.id);
+    b.style.setProperty('--c','var(--berry)');
     b.innerHTML=`<span class="theme-dot" style="background:${t.paper}"></span>${t.name}`;
     b.addEventListener('click',()=>{
       S.settings.theme=t.id; save();
@@ -1662,15 +2205,18 @@ $('#pinSwitch').addEventListener('click',async()=>{
   }
 });
 
+let editingHabit=null;
 function renderHabitManager(){
   const hm=$('#habitManager'); hm.innerHTML='';
   S.habits.sort((a,b)=>a.order-b.order).forEach(h=>{
     const item=document.createElement('div'); item.className='habit-item'; item.dataset.id=h.id;
+    const open = editingHabit===h.id;
+    if(open) item.classList.add('open');
     item.innerHTML=`
       <div class="habit-row">
         <span class="drag-handle" aria-hidden="true">≡</span>
-        <button class="habit-main" aria-label="${esc(h.label)}: Umbenennen oder Löschen anzeigen">
-          <i class="sw" style="--c:${h.type==='scale'?'var(--m-green)':COLORS[h.color]};width:16px;height:13px;flex:none;--r:${rot(h.id)}"></i>
+        <button class="habit-main" aria-label="${esc(h.label)}: umbenennen oder löschen">
+          <i class="sw${radClass(h.id)}" style="--c:${h.type==='scale'?'var(--m-green)':COLORS[h.color]};--r:${rot(h.id)}"></i>
           <span style="min-width:0">
             <span class="h-label" style="display:block">${esc(h.label)}</span>
             <span class="sub">${h.type==='scale'?'Ampel':'Häkchen'}</span>
@@ -1678,40 +2224,71 @@ function renderHabitManager(){
         </button>
         <button class="switch${h.active?' on':''}" role="switch" aria-checked="${h.active}" aria-label="${esc(h.label)} ${h.active?'ausblenden':'einblenden'}"></button>
       </div>
-      <div class="habit-actions">
-        <button class="btn small line" data-act="rename">Umbenennen</button>
-        <button class="btn small line" data-act="delete" style="color:var(--m-red)">Löschen</button>
-      </div>`;
+      ${open?`
+      <div class="habit-edit">
+        <input type="text" id="renameInput" value="${esc(h.label)}" maxlength="40" aria-label="Neuer Name für ${esc(h.label)}">
+        <button class="btn small berry" data-act="save">Speichern</button>
+      </div>
+      <div class="habit-foot">
+        <button data-act="cancel">Abbrechen</button>
+        <span class="grow"></span>
+        <button class="del" data-act="delete">Löschen</button>
+      </div>`:''}`;
     item.querySelector('.switch').addEventListener('click',ev=>{
       h.active=!h.active; ev.target.classList.toggle('on',h.active);
       ev.target.setAttribute('aria-checked',h.active);
       ev.target.setAttribute('aria-label',h.label+(h.active?' ausblenden':' einblenden'));
       save();
     });
+    /* Umbenennen passiert inline in der Zeile – kein prompt(), kein Systemkasten */
     item.querySelector('.habit-main').addEventListener('click',()=>{
-      const a=item.querySelector('.habit-actions'); const open=a.classList.contains('open');
-      $$('#habitManager .habit-actions').forEach(x=>x.classList.remove('open'));
-      a.classList.toggle('open', !open);
+      editingHabit = open ? null : h.id;
+      renderHabitManager();
+      if(!open){ const i=$('#renameInput'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length) } }
     });
-    item.querySelector('[data-act="rename"]').addEventListener('click',async()=>{
-      const name=await fridaPrompt({title:'Umbenennen',
-        msg:'Neuer Name für „'+h.label+'":', value:h.label, maxlength:40, ok:'Speichern'});
-      if(name===null) return;
-      const clean=name.trim().slice(0,40);
-      if(!clean){ toast('Name darf nicht leer sein'); return }
-      h.label=clean; save(); renderHabitManager(); toast('Umbenannt');
-    });
-    item.querySelector('[data-act="delete"]').addEventListener('click',async()=>{
-      const ok=await fridaConfirm({title:'„'+h.label+'" löschen?',
-        msg:'Bisherige Markierungen bleiben im Backup erhalten, werden aber nicht mehr angezeigt.',
-        ok:'Löschen', danger:true});
-      if(!ok) return;
-      S.habits=S.habits.filter(x=>x.id!==h.id); save(); renderHabitManager(); toast('Gelöscht');
-    });
+    if(open){
+      const inp=item.querySelector('#renameInput');
+      const commit=()=>{
+        const clean=inp.value.trim().slice(0,40);
+        if(!clean){ toast('Name darf nicht leer sein'); return }
+        h.label=clean; save(); editingHabit=null; renderHabitManager(); renderActive(); toast('Umbenannt');
+      };
+      item.querySelector('[data-act="save"]').addEventListener('click',commit);
+      inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); commit() } });
+      item.querySelector('[data-act="cancel"]').addEventListener('click',()=>{
+        editingHabit=null; renderHabitManager();
+      });
+      /* Löschen fragt nicht vorher, sondern lässt sich zurücknehmen */
+      item.querySelector('[data-act="delete"]').addEventListener('click',()=>deleteHabit(h));
+    }
     attachDrag(item);
     hm.appendChild(item);
   });
 }
+
+/* Rücknahme statt Vorab-Nachfrage (2.3): sechs Sekunden lang zurückholbar */
+let undoState=null, undoTimer=null;
+function deleteHabit(h){
+  const idx=S.habits.findIndex(x=>x.id===h.id);
+  if(idx<0) return;
+  const backup=JSON.parse(JSON.stringify(S.habits[idx]));
+  S.habits.splice(idx,1); save();
+  editingHabit=null; renderHabitManager();
+  showUndo('„'+h.label+'" gelöscht – im Backup bleiben deine Markierungen erhalten.',()=>{
+    S.habits.splice(Math.min(idx,S.habits.length),0,backup); save();
+    renderHabitManager(); renderActive(); toast('Wieder da');
+  });
+}
+function showUndo(msg,fn){
+  const bar=$('#undoBar');
+  $('#undoText').textContent=msg;
+  undoState=fn;
+  bar.classList.add('show');
+  clearTimeout(undoTimer);
+  undoTimer=setTimeout(hideUndo,6000);
+}
+function hideUndo(){ $('#undoBar').classList.remove('show'); undoState=null }
+$('#undoBtn').addEventListener('click',()=>{ const f=undoState; hideUndo(); if(f) f() });
 
 /* Sortieren per Drag am Handle (Pointer Events, iOS-tauglich via touch-action:none) */
 function attachDrag(item){
@@ -1751,6 +2328,7 @@ function renderColorDots(){
     const b=document.createElement('button');
     b.className='color-dot'+(name===newColor?' sel':'');
     b.style.background=css; b.setAttribute('aria-label','Farbe '+name);
+    b.setAttribute('aria-pressed', name===newColor);
     b.addEventListener('click',()=>{newColor=name; renderColorDots()});
     w.appendChild(b);
   });
@@ -1888,8 +2466,15 @@ $('#importFile').addEventListener('change',ev=>{
 });
 function refreshBanner(){
   const ref=S.profile.lastExport||S.profile.createdAt;
-  const stale = daysBetween(new Date(ref), new Date())>=14;
+  const days=daysBetween(new Date(ref), new Date());
+  const stale = days>=14;
   $('#backupBanner').classList.toggle('show', stale && Object.keys(S.entries).length>0);
+  if(!stale) return;
+  /* Sagt, wie lange es her ist – ohne Aufforderung im Ton */
+  const wk=Math.floor(days/7);
+  $('#bannerTitle').textContent = S.profile.lastExport
+    ? 'Dein letztes Backup ist '+(wk<2?'zwei Wochen':wk+' Wochen')+' her.'
+    : 'Du hast noch kein Backup abgelegt.';
 }
 
 /* ═══════════════════════ ONBOARDING ═══════════════════════ */
@@ -1897,12 +2482,16 @@ let obSel = new Set(DEFAULT_HABITS.map(h=>h.id));
 function renderObHabits(){
   const w=$('#obHabits'); w.innerHTML='';
   DEFAULT_HABITS.forEach(h=>{
+    const col=h.type==='scale'?'var(--m-green)':COLORS[h.color];
     const c=document.createElement('button');
     c.className='chip'+(obSel.has(h.id)?' sel':'');
-    c.innerHTML=`<i class="sw" style="--c:${h.type==='scale'?'var(--m-green)':COLORS[h.color]};--r:${rot(h.id)}"></i>${esc(h.label)}`;
+    c.setAttribute('aria-pressed', obSel.has(h.id));
+    c.style.setProperty('--c', col);
+    c.innerHTML=`<i class="sw${radClass(h.id)}" style="--c:${col};--r:${rot(h.id)}"></i>${esc(h.label)}`;
     c.addEventListener('click',()=>{
       obSel.has(h.id)?obSel.delete(h.id):obSel.add(h.id);
       c.classList.toggle('sel',obSel.has(h.id));
+      c.setAttribute('aria-pressed', obSel.has(h.id));
       if(obSel.has(h.id)){ c.querySelector('.sw').classList.add('draw'); buzz() }
     });
     w.appendChild(c);
@@ -1951,11 +2540,11 @@ function renderNoteSearch(){
   hits.forEach(k=>{
     const e=S.entries[k]; const d=parseKey(k);
     const c=e.gefuehle?SCALE_COLOR[e.gefuehle]:'var(--ink-soft)';
-    const row=document.createElement('button'); row.className='note-item'; row.style.width='100%';
+    const row=document.createElement('button'); row.className='note-item';
     row.setAttribute('aria-label','Notiz vom '+d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear());
-    row.innerHTML=`<span class="nd"><small>${MONTHS[d.getMonth()].slice(0,3)}</small><b>${d.getDate()}.</b></span>
-      <i class="sw" style="--c:${c};--r:${rot(k)}"></i>
-      <span class="nt">„${esc(e.note)}"<br><small style="font-style:normal;color:var(--ink-soft)">${d.getFullYear()}</small></span>`;
+    row.innerHTML=`<span class="nd">${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}.</span>
+      <i class="sw${radClass(k)}" style="--c:${c};--r:${rot(k)}"></i>
+      <span class="nt">${esc(e.note)} <small>· ${d.getFullYear()}</small></span>`;
     row.addEventListener('click',()=>{viewDate=k; switchTab('today')});
     list.appendChild(row);
   });
