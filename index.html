@@ -274,9 +274,13 @@
   }
   textarea:focus{border-color:var(--berry);outline:none}
 
-  .screen-head{margin-bottom:12px}
+  /* Heute atmet in 14 px, Monat in 12, Jahr in 10 – so wie die Vorlage. */
+  .screen-head{margin-bottom:14px}
   .screen-head h2{font-size:26px;line-height:1.1}
-  .screen-head .eyebrow{display:block}
+  /* Etwas Luft zwischen Datum und Begrüßung: die Handschrift steigt hoch hinauf
+     und stößt sonst direkt an die Datumszeile. */
+  .screen-head .eyebrow{display:block;margin-bottom:4px}
+  #screen-month .screen-head,#screen-year .screen-head,.month-head{margin-bottom:12px}
   .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px}
 
   /* ─────────────────────────  MONATSRASTER  ───────────────────────── */
@@ -379,7 +383,7 @@
 
   /* ─────────────────────────  IMPULSE  ───────────────────────── */
   .impulse{background:var(--berry-soft);border-radius:var(--radius);
-    padding:14px;margin-top:12px}
+    padding:14px;margin-top:14px}
   .impulse .hand{font-size:17px;margin-bottom:6px;display:block;color:var(--berry)}
   .impulse p{font-size:13.5px;line-height:1.5;color:var(--ink)}
 
@@ -486,7 +490,7 @@
   }
 
   /* Chips in stillen Gruppen – Körper, Innen, Außen. Kein Titel, nur Abstand. */
-  .chip-group + .chip-group{margin-top:12px}
+  .chip-group + .chip-group{margin-top:14px}
 
   /* Leere Zustände: ein Satz in Fridas Stimme, ein gedämpftes Beispiel,
      genau eine Handlung. Kein leeres Raster mit Aufforderung ins Nichts. */
@@ -505,7 +509,9 @@
   .empty-year span{display:flex;flex-direction:column;gap:2px}
   .empty-year i{display:block;height:11px;border-radius:3.5px}
 
-  /* Sieben Tage, alle sichtbar, gleich breit – kein horizontales Scrollen mehr */
+  /* Sieben Tage, alle sichtbar, gleich breit – kein horizontales Scrollen mehr.
+     Der Streifen ist ein eigener Block und klebt nicht an der ersten Karte. */
+  #stripWrap,.first-day{margin-bottom:14px}
   .day-strip{display:flex;gap:6px}
   .day-dot{flex:1;min-width:0;height:56px;border-radius:12px;border:1px solid var(--line);
     background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
@@ -694,11 +700,11 @@
       <span class="eyebrow">Wie war dein Tag?</span>
       <div id="scaleRows"></div>
     </div>
-    <div class="card" style="margin-top:12px">
-      <span class="eyebrow" style="display:block;margin-bottom:12px">Was war heute los?</span>
+    <div class="card" style="margin-top:14px">
+      <span class="eyebrow" style="display:block;margin-bottom:14px">Was war heute los?</span>
       <div id="checkChips"></div>
     </div>
-    <div class="card" style="margin-top:12px">
+    <div class="card" style="margin-top:14px">
       <span class="eyebrow">Notiz <small>(optional)</small></span>
       <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
@@ -1382,7 +1388,7 @@ function renderMemoryCard(){
       <i class="sw${swClass(h,e[h.id])}${radClass(h.id)}" style="--c:${habitColor(h,e[h.id])};--r:${rot(k+h.id)}"></i>${esc(h.label)}</span>`)
     .join('');
   const card=document.createElement('div');
-  card.className='card'; card.style.marginTop='12px';
+  card.className='card'; card.style.marginTop='14px';
   card.innerHTML=`<span class="eyebrow">Vor einem Jahr</span>
     <p class="hint" style="margin-top:6px">${WD[prev.getDay()]}, ${prev.getDate()}. ${MONTHS[prev.getMonth()]} ${prev.getFullYear()} – so sah dieser Tag auf deiner letzten Seite aus.</p>
     ${chips?`<div class="summary-line" style="margin-top:10px">${chips}</div>`:''}
@@ -1533,7 +1539,7 @@ function renderWeekEcho(){
       <span style="color:var(--ink)">„${esc(pe.note)}"</span></div>`;
   }
   const card=document.createElement('div');
-  card.className='card'; card.style.cssText='margin-top:12px;display:flex;flex-direction:column;gap:12px';
+  card.className='card'; card.style.cssText='margin-top:14px;display:flex;flex-direction:column;gap:12px';
   card.innerHTML=`<span class="eyebrow">Deine Woche in Farbe</span>
     <div style="display:flex;justify-content:space-between;padding:0 6px" aria-hidden="true">${cells}</div>${back}`;
   w.appendChild(card);
