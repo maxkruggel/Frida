@@ -51,6 +51,11 @@
     --radius:18px;
     /* Höhe des haftenden Abschluss-Balkens: Verlauf 30 + Button 48 + Rand 12 */
     --savebar-h:90px;
+    /* Abstand zwischen den Blöcken im Heute-Screen. Die Vorlage setzt 14 px;
+       hier bewusst offener, weil der Screen abends mit einer Hand und halb
+       geschlossenen Augen bedient wird. Gruppen innerhalb einer Karte bleiben
+       bei 14, damit die Hierarchie sichtbar bleibt. */
+    --gap-today:18px;
     --safe-b:env(safe-area-inset-bottom, 0px);
     --safe-t:env(safe-area-inset-top, 0px);
     --hand:"Noteworthy","Bradley Hand","Segoe Print","Comic Sans MS",cursive;
@@ -275,11 +280,11 @@
   textarea:focus{border-color:var(--berry);outline:none}
 
   /* Heute atmet in 14 px, Monat in 12, Jahr in 10 – so wie die Vorlage. */
-  .screen-head{margin-bottom:14px}
+  .screen-head{margin-bottom:var(--gap-today)}
   .screen-head h2{font-size:26px;line-height:1.1}
   /* Etwas Luft zwischen Datum und Begrüßung: die Handschrift steigt hoch hinauf
      und stößt sonst direkt an die Datumszeile. */
-  .screen-head .eyebrow{display:block;margin-bottom:4px}
+  .screen-head .eyebrow{display:block;margin-bottom:5px}
   #screen-month .screen-head,#screen-year .screen-head,.month-head{margin-bottom:12px}
   .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px}
 
@@ -383,7 +388,7 @@
 
   /* ─────────────────────────  IMPULSE  ───────────────────────── */
   .impulse{background:var(--berry-soft);border-radius:var(--radius);
-    padding:14px;margin-top:14px}
+    padding:14px;margin-top:var(--gap-today)}
   .impulse .hand{font-size:17px;margin-bottom:6px;display:block;color:var(--berry)}
   .impulse p{font-size:13.5px;line-height:1.5;color:var(--ink)}
 
@@ -511,7 +516,7 @@
 
   /* Sieben Tage, alle sichtbar, gleich breit – kein horizontales Scrollen mehr.
      Der Streifen ist ein eigener Block und klebt nicht an der ersten Karte. */
-  #stripWrap,.first-day{margin-bottom:14px}
+  #stripWrap,.first-day{margin-bottom:var(--gap-today)}
   .day-strip{display:flex;gap:6px}
   .day-dot{flex:1;min-width:0;height:56px;border-radius:12px;border:1px solid var(--line);
     background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
@@ -700,11 +705,11 @@
       <span class="eyebrow">Wie war dein Tag?</span>
       <div id="scaleRows"></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" style="margin-top:var(--gap-today)">
       <span class="eyebrow" style="display:block;margin-bottom:14px">Was war heute los?</span>
       <div id="checkChips"></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" style="margin-top:var(--gap-today)">
       <span class="eyebrow">Notiz <small>(optional)</small></span>
       <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
@@ -1364,7 +1369,7 @@ function renderCycleCard(){
   else if(ci.until===1) when='Nach deinem Rhythmus könnte es <b>morgen</b> losgehen.';
   else when='Die nächste Periode erwarte ich um den <b>'+d.getDate()+'. '+MONTHS[d.getMonth()]+'</b> (in etwa '+ci.until+' Tagen).';
   const card=document.createElement('div');
-  card.className='card'; card.style.marginTop='14px';
+  card.className='card'; card.style.marginTop='var(--gap-today)';
   card.innerHTML=`<span class="eyebrow">Dein Zyklus</span>
     <p style="font-size:14.5px;line-height:1.6;margin-top:8px">
       Tag <b>${ci.dayIn}</b> – dein Rhythmus lag zuletzt bei etwa <b>${ci.avg} Tagen</b>. ${when}
@@ -1388,7 +1393,7 @@ function renderMemoryCard(){
       <i class="sw${swClass(h,e[h.id])}${radClass(h.id)}" style="--c:${habitColor(h,e[h.id])};--r:${rot(k+h.id)}"></i>${esc(h.label)}</span>`)
     .join('');
   const card=document.createElement('div');
-  card.className='card'; card.style.marginTop='14px';
+  card.className='card'; card.style.marginTop='var(--gap-today)';
   card.innerHTML=`<span class="eyebrow">Vor einem Jahr</span>
     <p class="hint" style="margin-top:6px">${WD[prev.getDay()]}, ${prev.getDate()}. ${MONTHS[prev.getMonth()]} ${prev.getFullYear()} – so sah dieser Tag auf deiner letzten Seite aus.</p>
     ${chips?`<div class="summary-line" style="margin-top:10px">${chips}</div>`:''}
@@ -1539,7 +1544,7 @@ function renderWeekEcho(){
       <span style="color:var(--ink)">„${esc(pe.note)}"</span></div>`;
   }
   const card=document.createElement('div');
-  card.className='card'; card.style.cssText='margin-top:14px;display:flex;flex-direction:column;gap:12px';
+  card.className='card'; card.style.cssText='margin-top:var(--gap-today);display:flex;flex-direction:column;gap:12px';
   card.innerHTML=`<span class="eyebrow">Deine Woche in Farbe</span>
     <div style="display:flex;justify-content:space-between;padding:0 6px" aria-hidden="true">${cells}</div>${back}`;
   w.appendChild(card);
