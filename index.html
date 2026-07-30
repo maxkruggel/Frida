@@ -49,6 +49,8 @@
     --danger:#B54A43;
     --danger-bg:#C55149;
     --radius:18px;
+    /* Höhe des haftenden Abschluss-Balkens: Verlauf 30 + Button 48 + Rand 12 */
+    --savebar-h:90px;
     --safe-b:env(safe-area-inset-bottom, 0px);
     --safe-t:env(safe-area-inset-top, 0px);
     --hand:"Noteworthy","Bradley Hand","Segoe Print","Comic Sans MS",cursive;
@@ -103,7 +105,10 @@
   .screen{display:none;position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;
     -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
     padding:calc(var(--safe-t) + 20px) 16px calc(84px + var(--safe-b))}
-  #screen-today.checkin-open{padding-bottom:calc(150px + var(--safe-b))}
+  /* Solange der „Fertig"-Balken über der Tab-Bar hängt, gehört seine Höhe zum
+     Scrollraum: so kann jede Karte freigescrollt werden, nichts bleibt dauerhaft
+     dahinter liegen – auch nicht auf einem SE. */
+  #screen-today.checkin-open{padding-bottom:calc(60px + var(--savebar-h) + 16px + var(--safe-b))}
   .screen.active{display:block;animation:fadeUp .3s ease}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
@@ -239,11 +244,11 @@
   /* Skalen-Frage (Ampel) – beschriftet wie im Review: dieselbe Frage, dasselbe
      Muster. Die Farbflecken sind immer voll da; ausgewählt wird durch den Ring,
      nicht durch Abdunkeln der anderen. */
-  .scale-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+  .scale-row{display:flex;align-items:center;gap:10px}
   .scale-row .grow{flex:1}
   .scale-opts{display:flex;gap:8px}
-  .scale-btn{width:52px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0}
-  .scale-btn .swp{height:32px;display:flex;align-items:center;justify-content:center}
+  .scale-btn{width:52px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0}
+  .scale-btn .swp{height:30px;display:flex;align-items:center;justify-content:center}
   .scale-btn .sw{width:24px;height:24px}
   .scale-btn small{font-size:11px;font-weight:600;color:var(--ink-soft);line-height:1}
   .scale-btn.sel .sw{box-shadow:0 0 0 2.5px var(--card), 0 0 0 4px var(--ink)}
@@ -251,9 +256,9 @@
 
   /* Check-Habits als Chips: aus = runder Punkt, blass, dünne Linie.
      An = Klecks in Themenfarbe, Rahmen und Fläche nehmen die Farbe auf. */
-  .chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+  .chip-wrap{display:flex;flex-wrap:wrap;gap:7px}
   .chip{
-    display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 13px;
+    display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:5px 12px;
     border:1px solid var(--line);border-radius:22px;background:var(--card);
     font-size:14px;font-weight:400
   }
@@ -264,7 +269,7 @@
     border-radius:46% 54% 52% 48% / 54% 46% 54% 46%}
 
   textarea{
-    width:100%;min-height:70px;padding:10px 12px;font-size:14px;font-family:var(--ui);
+    width:100%;min-height:58px;padding:10px 12px;font-size:14px;font-family:var(--ui);
     background:var(--paper);border:1px solid var(--line);border-radius:12px;resize:vertical
   }
   textarea:focus{border-color:var(--berry);outline:none}
@@ -472,15 +477,16 @@
      egal wie weit gescrollt wurde. Vorher begann der Button bei y = 835 und
      verlangte jedes Mal eine Scrollbewegung ins Leere. */
   #saveBar{position:fixed;left:0;right:0;bottom:calc(60px + var(--safe-b));z-index:38;
-    padding:28px 16px 12px;display:none;
-    background:linear-gradient(180deg, transparent, var(--paper) 55%)}
+    padding:30px 16px 12px;display:none;
+    /* Der Verlauf läuft länger aus, damit die Kante nicht wie ein Schnitt wirkt */
+    background:linear-gradient(180deg, transparent, var(--paper) 70%)}
   #saveBar.show{display:block}
   @media (min-width:620px){
     #saveBar{padding-left:calc(50vw - 260px);padding-right:calc(50vw - 260px)}
   }
 
   /* Chips in stillen Gruppen – Körper, Innen, Außen. Kein Titel, nur Abstand. */
-  .chip-group + .chip-group{margin-top:14px}
+  .chip-group + .chip-group{margin-top:12px}
 
   /* Leere Zustände: ein Satz in Fridas Stimme, ein gedämpftes Beispiel,
      genau eine Handlung. Kein leeres Raster mit Aufforderung ins Nichts. */
@@ -512,7 +518,7 @@
   /* Der erste Tag zeigt keine dreizehn leeren Karten, sondern einen Satz */
   .first-day{display:flex;align-items:center;gap:14px}
   .first-day .day-dot{flex:none;width:48px}
-  .first-day p{font-family:var(--hand);font-size:16px;line-height:1.3;font-weight:700}
+  .first-day p{font-family:var(--hand);font-size:15px;line-height:1.3;font-weight:700}
 
   /* ─────────────────────────  DIALOG (ersetzt prompt/confirm)  ───────────────────────── */
   #dialog{position:fixed;inset:0;z-index:68;display:none;align-items:center;justify-content:center;
@@ -688,11 +694,11 @@
       <span class="eyebrow">Wie war dein Tag?</span>
       <div id="scaleRows"></div>
     </div>
-    <div class="card" style="margin-top:14px">
-      <span class="eyebrow" style="display:block;margin-bottom:14px">Was war heute los?</span>
+    <div class="card" style="margin-top:12px">
+      <span class="eyebrow" style="display:block;margin-bottom:12px">Was war heute los?</span>
       <div id="checkChips"></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" style="margin-top:12px">
       <span class="eyebrow">Notiz <small>(optional)</small></span>
       <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
     </div>
