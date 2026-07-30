@@ -3,7 +3,7 @@
    - HTML (Navigationen) immer network-first, Cache nur als Offline-Fallback
    - statische Assets cache-first mit Hintergrund-Aktualisierung
    - Cache-Name trägt die Version; activate räumt alte Caches weg */
-const CACHE = 'frida-2.0.0';
+const CACHE = 'frida-2.1.0';
 const ASSETS = [
   './',
   './index.html',
