@@ -3,7 +3,7 @@
 **Name:** Frida („dein Jahr in Farbe")
 Persona-Ansatz: Die App ist eine Begleiterin, keine Software – sie spricht in der Ich-Form („Ich bin Frida. Ich male dein Jahr auf eine Seite."). Die Malerin-Assoziation ist gewollt und trägt die Filzstift-Ästhetik. Perspektivisch kann Frida eine Stimme bekommen (siehe Backlog V2).
 
-**Stand:** 29.07.2026 · **V2.0** (V1 aus dem Chat, V1.1–V1.3.2 und V2.0 in Claude Code umgesetzt)
+**Stand:** 30.07.2026 · **V2.1.1** (V1 aus dem Chat, V1.1–V1.3.2, V2.0 und die Redesign-Runden V2.1/V2.1.1 in Claude Code umgesetzt)
 **Dateien:** `index.html` (die App, ehemals `frida.html`) + `sw.js` + `manifest.webmanifest` + App-Icons + `favicon.ico`. Die App selbst bleibt eine einzige Datei ohne Build und ohne Abhängigkeiten, komplett offline-fähig; Service Worker und Manifest sind bewusste, minimale Ausnahmen für die PWA-Installation.
 
 ---
@@ -177,13 +177,15 @@ Seit V2.0 gibt es drei Papier-Sets (Klassik, Rosé, Nachtpapier) als reine Token
 |---|---|---|
 | `--paper` | `#F5EEDF` | Journalpapier (Vorgabe aus der Vorlage) |
 | `--ink` | `#453C31` | Fineliner-Braun statt Schwarz |
-| `--berry` | `#9C4F66` | UI-Akzent (Buttons, aktiver Tab) – feminin, bewusst kein Terracotta |
+| `--berry` | `#9B3B78` | UI-Akzent (Buttons, aktiver Tab) – feminin, bewusst kein Terracotta. Seit V2.1.1 kräftiger und Richtung Lila statt gedämpftem Altrosa (Rosé `#9E3A7C`, Nachtpapier `#CE7BB4`) |
 | `--m-green/-red/-yellow/-blue/-pink` | s. Code | Die fünf Markerfarben |
 
 - **Typo:** Display = `Noteworthy` (auf iOS vorinstalliert → echte Handschrift ohne Webfont, funktioniert offline; Fallback Bradley Hand/cursive). UI-Text = SF/System. Der Kontrast Handschrift ↔ System-UI ist gewollt.
 - **Signatur-Element:** der Filzstift-Swatch – asymmetrischer Border-Radius, deterministische Mini-Rotation, SVG-`feTurbulence`-Filter für die raue Kante, „Aufmal"-Animation beim Setzen. Jede Markierung wirkt gemalt, nicht geklickt. Das App-Icon greift genau dieses Motiv auf (drei Marker auf Punktraster).
 - **Papier:** dezentes Punktraster per `radial-gradient` – wie echtes Bullet-Journal-Papier.
 - Habit-Labels als umrandete Pillen in Handschrift (direkt aus der Vorlage übernommen).
+- **Abstände (seit V2.1.1):** Karten haben 16 px Innenabstand und 16 px zueinander – innen wie außen derselbe Wert. Eine Überschrift in der Karte (`.card > .eyebrow`) bringt ihre 10 px nach unten selbst mit; Inline-Abstände darunter entfallen deshalb. Rhythmus in 2er-Schritten ab 6 px, keine krummen Einzelwerte mehr.
+- **Statusleiste (seit V2.1.1):** Die Leiste hinter Uhr und Kamera färbt sich mit dem Papier. iOS liest `theme-color` und `apple-mobile-web-app-status-bar-style` **einmal beim Start**, deshalb setzt ein Inline-Skript ganz oben im `<head>` beide Metas aus dem gespeicherten Theme, bevor der erste Strich Farbe fällt. Nachtpapier läuft auf `black-translucent` (Seite reicht bis unter die Uhr, weiße Systemschrift, `#statusScrim` trägt die Fläche), helles Papier bleibt auf `default`. Der Streifen bezieht seine Höhe aus `env(safe-area-inset-top)` – liegt die Seite doch unter der Systemleiste, ist das Inset 0 und er verschwindet von selbst.
 - **Stimme im Interface:** Frida spricht per Du und in der Ich-Form – Onboarding, Erinnerungen und Impulse sind von ihr formuliert, UI-Labels bleiben neutral („Backup sichern", „Tag festhalten").
 
 ---
