@@ -12,6 +12,33 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <title>Frida – dein Jahr in Farbe</title>
+<script>
+/* ─────────  STATUSLEISTE FÄRBT SICH MIT  ─────────
+   Die Leiste hinter Uhr und Kamera gehört bei iOS zur App, nicht zur Seite:
+   iOS liest beide Metas EINMAL beim Start und ignoriert spätere Änderungen.
+   Deshalb steht das Papier hier ganz vorn – vor dem ersten Strich Farbe,
+   noch bevor der State geladen wird.
+   Nachtpapier bekommt „black-translucent": die Seite reicht dann bis unter
+   die Uhr, unser eigenes Papier trägt die Fläche (siehe #statusScrim), die
+   Systemschrift wird weiß. Helles Papier bleibt bei „default" – dunkle
+   Systemschrift auf der hellen Leiste, Layout unverändert. */
+(function(){
+  var PAPER={klassik:'#F5EEDF', rose:'#F6E8E2', nacht:'#26221B'};
+  var t='klassik';
+  try{
+    var raw=localStorage.getItem('frida_v1');
+    if(raw){ var s=JSON.parse(raw); if(s && s.settings && PAPER[s.settings.theme]) t=s.settings.theme }
+  }catch(e){}
+  var h=document.documentElement;
+  if(t!=='klassik') h.dataset.theme=t;
+  h.style.colorScheme = (t==='nacht' ? 'dark' : 'light');
+  var tc=document.querySelector('meta[name="theme-color"]');
+  if(tc) tc.setAttribute('content', PAPER[t]);
+  var sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if(sb) sb.setAttribute('content', t==='nacht' ? 'black-translucent' : 'default');
+  if(t==='nacht') h.classList.add('statusbar-overlay');
+})();
+</script>
 <style>
   /* ─────────────────────────  TOKENS  ───────────────────────── */
   :root{
@@ -22,8 +49,11 @@
     /* Kontrast gemessen gegen Papier/Karte/Tab-Bar: 5,01 · 5,36 · 4,63:1 (vorher 3,44 · 3,68 · 3,18) */
     --ink-soft:#6F6455;
     --line:#DDD2BC;
-    --berry:#9C4F66;
-    --berry-soft:#F0DEE4;
+    /* Der Akzent trägt jede Haupthandlung – er darf zupacken. Kräftiger und
+       eine Spur Richtung Lila statt gedämpftes Altrosa (Weiß hält 6,4:1,
+       auf der Karte 5,9:1). */
+    --berry:#9B3B78;
+    --berry-soft:#F1DBEA;
     --m-green:#3E7A54;
     --m-red:#D4574E;
     /* Gelb abgedunkelt, bis es als Grafik 3:1 gegen das Papier hält
@@ -59,7 +89,7 @@
     --paper:#F6E8E2; --paper-deep:#F0DCD3; --card:#FBF2ED;
     /* eigener Wert, weil Rosé-Papier heller ist: 5,02 · 5,44 · 4,54:1 */
     --ink:#46352D; --ink-soft:#716053; --line:#E3CFC2;
-    --berry:#A04A5E; --berry-soft:#F3DDE0;
+    --berry:#9E3A7C; --berry-soft:#F4DAE9;
     --dot:rgba(70,53,45,.07); --tab-bg:#F0DCD3;
     --grid-line:rgba(227,207,194,.6); --wkend:rgba(70,53,45,.04);
     --line-soft:#C4AA9B; --hair:#EFE0D8; --year-empty:#E9D8CE; --switch-off:#E0C9BD;
@@ -67,7 +97,9 @@
   html[data-theme="nacht"]{
     --paper:#26221B; --paper-deep:#201C16; --card:#2E2921;
     --ink:#EDE4D3; --ink-soft:#A2947E; --line:#453E32;
-    --berry:#C97B90; --berry-soft:#463039;
+    /* Auf dunklem Papier dieselbe Bewegung: satter, weniger Altrosa
+       (dunkle Schrift darauf 5,4:1, als Text auf der Karte 4,9:1). */
+    --berry:#CE7BB4; --berry-soft:#47304A;
     --m-green:#4C9367; --m-red:#DF6A60; --m-yellow:#E4B84E;
     --m-blue:#5E82C2; --m-pink:#E39DA9;
     --dot:rgba(237,228,211,.07); --tab-bg:#201C16;
@@ -104,6 +136,9 @@
     -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
     padding:calc(var(--safe-t) + 20px) 16px calc(84px + var(--safe-b))}
   #screen-today.checkin-open{padding-bottom:calc(150px + var(--safe-b))}
+  /* Zwischen Tagesstreifen und Eingabe liegt derselbe Abstand wie zwischen
+     zwei Karten – vorher stießen beide fast aneinander. */
+  #checkinForm,#checkinDone{margin-top:16px}
   .screen.active{display:block;animation:fadeUp .3s ease}
   @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){
@@ -189,11 +224,11 @@
     padding:calc(var(--safe-t) + 20px) 16px calc(20px + var(--safe-b));
     overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
   #monthReview.active{display:flex;animation:fadeUp .35s ease}
-  #monthReview h2{font-size:27px;line-height:1.1;margin:0 0 13px}
+  #monthReview h2{font-size:27px;line-height:1.1;margin:2px 0 12px}
   .mr-intro{color:var(--ink);font-size:14px;line-height:1.55}
-  .mr-body{flex:1;margin-top:13px;display:flex;flex-direction:column;gap:13px}
+  .mr-body{flex:1;margin-top:16px;display:flex;flex-direction:column;gap:16px}
   .mr-body .card + .card{margin-top:0}
-  .mr-stats{font-size:13.5px;line-height:1.7;margin-top:4px}
+  .mr-stats{font-size:13.5px;line-height:1.7}
   /* Klare Zweiteilung: Haupthandlung volle Breite, der Ausweg als ruhiger
      Textlink darunter – nebeneinander brach „Heute nicht" zweizeilig um. */
   .mr-nav{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-top:20px}
@@ -228,8 +263,17 @@
   .field input:focus{border-color:var(--berry);outline:none}
 
   /* ─────────────────────────  KARTEN & CHIPS  ───────────────────────── */
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
-  .card + .card{margin-top:12px}
+  /* Karten atmen: 16 px rundum statt 12/14, und zwischen zwei Karten liegt
+     dieselbe Luft wie innerhalb. Vorher stand der Text stellenweise fast auf
+     der Kante – besonders dort, wo ein Eingabefeld oder Button die Karte
+     abschließt. */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card + .card{margin-top:16px}
+  /* Überschrift in der Karte bekommt selbstverständlich Abstand nach unten,
+     ohne dass jede Stelle einen eigenen Inline-Wert braucht. */
+  .card > .eyebrow{display:block;margin-bottom:10px}
+  /* In Karten, die ihre Kinder per Abstand stapeln, trägt der Abstand allein */
+  .card.stack > .eyebrow{margin-bottom:0}
 
   .pill-label{
     display:inline-block;padding:2px 12px;border:1.5px solid var(--ink);
@@ -239,7 +283,7 @@
   /* Skalen-Frage (Ampel) – beschriftet wie im Review: dieselbe Frage, dasselbe
      Muster. Die Farbflecken sind immer voll da; ausgewählt wird durch den Ring,
      nicht durch Abdunkeln der anderen. */
-  .scale-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+  .scale-row{display:flex;align-items:center;gap:12px;padding:7px 0}
   .scale-row .grow{flex:1}
   .scale-opts{display:flex;gap:8px}
   .scale-btn{width:52px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0}
@@ -251,9 +295,9 @@
 
   /* Check-Habits als Chips: aus = runder Punkt, blass, dünne Linie.
      An = Klecks in Themenfarbe, Rahmen und Fläche nehmen die Farbe auf. */
-  .chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+  .chip-wrap{display:flex;flex-wrap:wrap;gap:9px}
   .chip{
-    display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 13px;
+    display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 14px;
     border:1px solid var(--line);border-radius:22px;background:var(--card);
     font-size:14px;font-weight:400
   }
@@ -269,16 +313,16 @@
   }
   textarea:focus{border-color:var(--berry);outline:none}
 
-  .screen-head{margin-bottom:12px}
+  .screen-head{margin-bottom:18px}
   .screen-head h2{font-size:26px;line-height:1.1}
   .screen-head .eyebrow{display:block}
-  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px}
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:8px}
 
   /* ─────────────────────────  MONATSRASTER  ───────────────────────── */
   /* Kopf: Titel links, Umschalter Woche | Monat rechts. Die Woche ist der
      Einstieg – sieben Tage ganz sichtbar, große Ziele. Das volle Raster ist
      der bewusste Zweitblick. */
-  .month-head{display:flex;align-items:center;margin-bottom:12px}
+  .month-head{display:flex;align-items:center;margin-bottom:16px}
   .month-head .grow{flex:1}
   .seg{display:flex;background:var(--paper-deep);border:1px solid var(--line);
     border-radius:999px;padding:3px}
@@ -286,14 +330,14 @@
     border-radius:999px;min-height:34px}
   .seg button.on{background:var(--card);border:1px solid var(--line);color:var(--berry);font-weight:700}
   .range-nav{display:flex;align-items:center;justify-content:center;gap:14px;
-    color:var(--ink-soft);font-size:13px;margin-bottom:12px}
+    color:var(--ink-soft);font-size:13px;margin-bottom:14px}
   .range-nav b{font-weight:600;color:var(--ink)}
   .nav-arrow{width:44px;height:44px;border-radius:50%;background:transparent;
     border:none;font-size:18px;color:var(--ink-soft)}
 
   /* Woche: sieben gleich breite Spalten, Labelspalte 92 px */
   .week-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+    padding:12px;display:flex;flex-direction:column;gap:2px}
   .week-row{display:flex;align-items:center;height:37px}
   .week-row.head{height:34px}
   .w-lab{width:92px;flex:none;box-sizing:border-box;font-family:var(--hand);font-size:13px;
@@ -312,7 +356,7 @@
      elf Tage sichtbar statt acht. Getippt wird die ganze Tagesspalte. */
   .grid-scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
     border:1px solid var(--line);border-radius:var(--radius);background:var(--card);
-    padding:10px 0 10px 12px;position:relative}
+    padding:12px 0 12px 12px;position:relative}
   .grid-fade{position:absolute;top:0;right:0;bottom:0;width:30px;pointer-events:none;
     background:linear-gradient(90deg, transparent, var(--card))}
   .grid{display:grid;grid-auto-rows:30px;align-items:center;min-width:max-content}
@@ -337,7 +381,7 @@
   .g-cell.we,.g-day.we{background:var(--wkend)}
   .g-cell.today-col{background:var(--berry-soft)}
 
-  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--ink-soft);
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-soft);
     align-items:center;padding:0 2px}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .legend .sw{width:10px;height:10px}
@@ -374,9 +418,27 @@
 
   /* ─────────────────────────  IMPULSE  ───────────────────────── */
   .impulse{background:var(--berry-soft);border-radius:var(--radius);
-    padding:14px;margin-top:12px}
-  .impulse .hand{font-size:17px;margin-bottom:6px;display:block;color:var(--berry)}
+    padding:16px;margin-top:16px}
+  .impulse .hand{font-size:17px;margin-bottom:8px;display:block;color:var(--berry)}
   .impulse p{font-size:13.5px;line-height:1.5;color:var(--ink)}
+
+  /* ─────────────────────────  STATUSLEISTE  ─────────────────────────
+     Nur aktiv, wenn die Seite bis unter die Uhr reicht (Nachtpapier,
+     „black-translucent"). Die Höhe kommt aus dem echten Geräte-Inset:
+     Liegt die Seite doch unter der Systemleiste, ist das Inset 0 und der
+     Streifen verschwindet von selbst. Punktraster identisch zum Papier,
+     damit die Naht nicht zu sehen ist. */
+  #statusScrim{display:none}
+  html.statusbar-overlay #statusScrim{
+    display:block;position:fixed;left:0;right:0;top:0;height:var(--safe-t);
+    z-index:59;pointer-events:none;background:var(--paper);
+    background-image:radial-gradient(circle, var(--dot) 1.1px, transparent 1.5px);
+    background-size:22px 22px}
+  /* Zwischenzustand: Papier hell gewechselt, iOS hält die Leiste noch
+     translucent (bis zum nächsten Start) – dunkler Streifen, damit die
+     weiße Systemschrift lesbar bleibt. */
+  html.statusbar-overlay:not([data-theme="nacht"]) #statusScrim{
+    background:var(--ink);background-image:none}
 
   /* ─────────────────────────  TAB-BAR  ───────────────────────── */
   #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;
@@ -394,8 +456,8 @@
   /* ─────────────────────────  BANNER / TOAST  ───────────────────────── */
   /* Das Banner ist ein Hinweis, keine Haupthandlung: Kartenoptik statt Warnfarbe,
      umrandeter Button, und der Ton bittet nicht um Disziplin. */
-  #backupBanner{display:none;align-items:center;gap:12px;margin-bottom:14px;
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+  #backupBanner{display:none;align-items:center;gap:14px;margin-bottom:18px;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
   #backupBanner.show{display:flex}
   #backupBanner .bb-text{flex:1;display:flex;flex-direction:column;gap:2px}
   #backupBanner b{font-size:14px;font-weight:600}
@@ -419,7 +481,7 @@
     text-decoration:underline;min-height:44px;padding:0 4px}
 
   /* ─────────────────────────  MEHR / SETTINGS  ───────────────────────── */
-  .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+  .set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:52px;padding:6px 0}
   .set-row + .set-row{border-top:1px dashed var(--line)}
   .set-row .sub{font-size:12.5px;color:var(--ink-soft)}
   .switch{width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
@@ -438,8 +500,8 @@
   /* Habit-Manager: jede Zeile eine eigene Karte. Umbenennen passiert inline in
      der Zeile – kein prompt(), kein Systemkasten. */
   .habit-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:12px 14px;display:flex;flex-direction:column;gap:10px}
-  .habit-item + .habit-item{margin-top:10px}
+    padding:14px;display:flex;flex-direction:column;gap:12px}
+  .habit-item + .habit-item{margin-top:12px}
   .habit-item.open{border:1.5px solid var(--berry)}
   .habit-item.dragging{box-shadow:0 8px 20px rgba(69,60,49,.22);position:relative;z-index:5}
   .habit-row{display:flex;align-items:center;gap:10px}
@@ -480,12 +542,12 @@
   }
 
   /* Chips in stillen Gruppen – Körper, Innen, Außen. Kein Titel, nur Abstand. */
-  .chip-group + .chip-group{margin-top:14px}
+  .chip-group + .chip-group{margin-top:16px}
 
   /* Leere Zustände: ein Satz in Fridas Stimme, ein gedämpftes Beispiel,
      genau eine Handlung. Kein leeres Raster mit Aufforderung ins Nichts. */
-  .empty-state{display:flex;flex-direction:column;align-items:center;gap:14px;
-    text-align:center;padding:26px 22px;margin-top:36px}
+  .empty-state{display:flex;flex-direction:column;align-items:center;gap:18px;
+    text-align:center;padding:30px 24px;margin-top:36px}
   .empty-state h3{font-family:var(--hand);font-size:22px;font-weight:700}
   .empty-state p{font-size:14px;line-height:1.55;color:var(--ink-soft);max-width:270px}
   .empty-state .cap{font-size:11px;color:var(--ink-soft)}
@@ -553,6 +615,9 @@
 </style>
 </head>
 <body>
+
+<!-- Papierstreifen hinter Uhr und Kamera (nur bei durchscheinender Statusleiste) -->
+<div id="statusScrim" aria-hidden="true"></div>
 
 <!-- SVG-Filter: raue Filzstift-Kante -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -652,7 +717,7 @@
     </div>
     <div class="card">
       <span class="eyebrow" id="mrNoteQ">Was bleibt dir von diesem Monat? <small>(optional)</small></span>
-      <textarea id="mrNote" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
+      <textarea id="mrNote" placeholder="Ein Satz reicht …" maxlength="2000"></textarea>
     </div>
   </div>
   <div class="mr-nav">
@@ -684,17 +749,17 @@
 
   <!-- Eingabe -->
   <div id="checkinForm">
-    <div class="card" style="display:flex;flex-direction:column;gap:8px">
+    <div class="card">
       <span class="eyebrow">Wie war dein Tag?</span>
       <div id="scaleRows"></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" style="margin-top:16px">
       <span class="eyebrow" style="display:block;margin-bottom:14px">Was war heute los?</span>
       <div id="checkChips"></div>
     </div>
-    <div class="card" style="margin-top:14px">
+    <div class="card" style="margin-top:16px">
       <span class="eyebrow">Notiz <small>(optional)</small></span>
-      <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000" style="margin-top:8px"></textarea>
+      <textarea id="noteInput" placeholder="Ein Satz reicht …" maxlength="2000"></textarea>
     </div>
   </div>
 
@@ -748,27 +813,27 @@
     <p class="hint" id="monthHint">Tippe einen Tag zum Nachtragen – die ganze Spalte reagiert.</p>
   </div>
 
-  <div class="card" id="monthReviewCard" style="margin-top:14px;display:none">
+  <div class="card" id="monthReviewCard" style="margin-top:16px;display:none">
     <span class="eyebrow">Dein Monatsreview</span>
-    <div id="monthReviewBody" style="margin-top:8px"></div>
+    <div id="monthReviewBody"></div>
   </div>
 
-  <div class="card" id="noteHistoryCard" style="margin-top:14px;display:none">
+  <div class="card" id="noteHistoryCard" style="margin-top:16px;display:none">
     <span class="eyebrow">Notizen in diesem Monat</span>
     <div id="noteHistory"></div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="card" style="margin-top:16px">
     <span class="eyebrow">Notizen durchsuchen</span>
-    <div class="field" style="margin-top:8px">
+    <div class="field" style="margin-top:0">
       <input type="text" id="noteSearch" placeholder="Wonach suchst du?" maxlength="60" aria-label="Notizen durchsuchen">
     </div>
     <div id="noteSearchResults"></div>
   </div>
 
-  <div class="card" style="margin-top:14px">
+  <div class="card" style="margin-top:16px">
     <span class="eyebrow">Zum Teilen</span>
-    <p class="hint" style="margin:6px 0 12px">Deine letzten sieben Tage als Bild – nur Farben und Themen, keine Notizen.</p>
+    <p class="hint" style="margin:0 0 14px">Deine letzten sieben Tage als Bild – nur Farben und Themen.</p>
     <button class="btn small line" id="shareWeekBtn">Meine Woche als Bild</button>
   </div>
 </main>
@@ -796,18 +861,18 @@
       <span>· leer = leeres Papier · ab morgen: noch frei</span>
     </div>
   </div>
-  <div class="card" style="margin-top:14px">
+  <div class="card" style="margin-top:16px">
     <span class="eyebrow" id="yearStatsQ">Dieser Monat in Zahlen</span>
-    <div id="monthStats" style="font-size:14.5px;line-height:1.8;margin-top:8px"></div>
+    <div id="monthStats" style="font-size:14.5px;line-height:1.8"></div>
     <button class="btn small line" id="shareYearBtn" style="margin-top:12px">Dieses Jahr als Bild</button>
   </div>
-  <div class="card" id="yearReviewCard" style="margin-top:14px;display:none">
+  <div class="card" id="yearReviewCard" style="margin-top:16px;display:none">
     <span class="eyebrow">Dein Jahresreview</span>
-    <div id="yearReviewBody" style="margin-top:8px"></div>
+    <div id="yearReviewBody"></div>
   </div>
-  <div class="card" id="correlationCard" style="margin-top:14px;display:none">
+  <div class="card" id="correlationCard" style="margin-top:16px;display:none">
     <span class="eyebrow">Frida ist was aufgefallen</span>
-    <div id="correlationBody" style="margin-top:4px"></div>
+    <div id="correlationBody"></div>
     <p class="hint">Muster aus deinen eigenen Einträgen – Zusammenhänge, keine Beweise.</p>
   </div>
 </main>
@@ -818,7 +883,7 @@
 
   <div class="card" id="installCard" style="display:none">
     <span class="eyebrow">Frida als App</span>
-    <p style="font-size:14px;line-height:1.6;margin-top:8px">
+    <p style="font-size:14px;line-height:1.6">
       Damit ich dauerhaft bei dir bleibe: Öffne mich in Safari, tippe auf
       <b>Teilen</b> und dann auf <b>„Zum Home-Bildschirm"</b>. Du bekommst ein eigenes
       Icon, Vollbild – und dein Speicher ist vor Safaris Aufräum-Regeln geschützt.
@@ -844,9 +909,9 @@
 
   <div class="card">
     <span class="eyebrow">Aussehen &amp; Schutz</span>
-    <p class="hint" style="margin:6px 0 4px">Dein Papier – drei Stimmungen, gleiche Frida.</p>
+    <p class="hint" style="margin:0 0 6px">Dein Papier – drei Stimmungen, gleiche Frida.</p>
     <div class="chip-wrap" id="themePicker" style="padding-top:8px"></div>
-    <div class="set-row" style="margin-top:12px;border-top:1px dashed var(--line)">
+    <div class="set-row" style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">
       <div><b>PIN-Sperre</b><div class="sub">Sichtschutz beim Öffnen – 4 Ziffern</div></div>
       <button class="switch" id="pinSwitch" role="switch" aria-checked="false" aria-label="PIN-Sperre"></button>
     </div>
@@ -854,11 +919,11 @@
 
   <div class="card">
     <span class="eyebrow">Deine Themen</span>
-    <p class="hint" style="margin:6px 0 10px">Halten und ziehen am ≡ ändert die Reihenfolge. Antippen öffnet Umbenennen – und Löschen lässt sich sechs Sekunden zurücknehmen.</p>
+    <p class="hint" style="margin:0 0 12px">Halten und ziehen am ≡ ändert die Reihenfolge. Antippen öffnet Umbenennen – und Löschen lässt sich sechs Sekunden zurücknehmen.</p>
     <div id="habitManager"></div>
-    <div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:14px">
+    <div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:16px">
       <span class="eyebrow">Neues Thema</span>
-      <div class="field" style="margin-top:8px"><input type="text" id="newHabitLabel" placeholder="z. B. Meditation" maxlength="40"></div>
+      <div class="field" style="margin-top:0"><input type="text" id="newHabitLabel" placeholder="z. B. Meditation" maxlength="40"></div>
       <div style="display:flex;flex-direction:column;gap:12px;padding:10px 0">
         <select id="newHabitType" aria-label="Art des Themas" style="min-height:44px;max-width:100%;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;background:var(--card)">
           <option value="check">Ja/Nein-Häkchen</option>
@@ -934,7 +999,7 @@
 
 <script>
 /* ═══════════════════════ KONSTANTEN & STATE ═══════════════════════ */
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.1.1';
 const KEY = 'frida_v1';
 const SCHEMA_VERSION = 1;
 const COLORS = {green:'var(--m-green)', red:'var(--m-red)', yellow:'var(--m-yellow)', blue:'var(--m-blue)', pink:'var(--m-pink)'};
@@ -1054,11 +1119,25 @@ const THEMES=[
   {id:'nacht',   name:'Nachtpapier', paper:'#26221B'},
 ];
 function applyTheme(t){
-  if(t==='klassik') delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme=t;
+  const h=document.documentElement;
+  if(t==='klassik') delete h.dataset.theme;
+  else h.dataset.theme=t;
+  h.style.colorScheme = (t==='nacht' ? 'dark' : 'light');
+  /* Nachtpapier reicht bis unter die Uhr. Die Klasse bleibt bis zum nächsten
+     Start bestehen, auch wenn zurück auf helles Papier gewechselt wird –
+     iOS gibt die durchscheinende Leiste erst dann wieder her. */
+  if(t==='nacht') h.classList.add('statusbar-overlay');
   requestAnimationFrame(()=>{
-    const mc=document.querySelector('meta[name="theme-color"]');
-    if(mc) mc.setAttribute('content', cssColor('--paper'));
+    const paper=cssColor('--paper');
+    /* Neu einhängen statt nur ändern: Safari übernimmt die Farbe sonst
+       teilweise erst beim nächsten Laden. */
+    const old=document.querySelector('meta[name="theme-color"]');
+    if(old) old.remove();
+    const mc=document.createElement('meta');
+    mc.name='theme-color'; mc.content=paper;
+    document.head.appendChild(mc);
+    const sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if(sb) sb.setAttribute('content', t==='nacht' ? 'black-translucent' : 'default');
   });
 }
 
@@ -1352,9 +1431,9 @@ function renderCycleCard(){
   else if(ci.until===1) when='Nach deinem Rhythmus könnte es <b>morgen</b> losgehen.';
   else when='Die nächste Periode erwarte ich um den <b>'+d.getDate()+'. '+MONTHS[d.getMonth()]+'</b> (in etwa '+ci.until+' Tagen).';
   const card=document.createElement('div');
-  card.className='card'; card.style.marginTop='14px';
+  card.className='card'; card.style.marginTop='16px';
   card.innerHTML=`<span class="eyebrow">Dein Zyklus</span>
-    <p style="font-size:14.5px;line-height:1.6;margin-top:8px">
+    <p style="font-size:14.5px;line-height:1.6">
       Tag <b>${ci.dayIn}</b> – dein Rhythmus lag zuletzt bei etwa <b>${ci.avg} Tagen</b>. ${when}
     </p>
     <p class="hint">Eine Schätzung aus deinen Einträgen – keine Grundlage für Verhütung, keine Diagnose.</p>`;
@@ -1527,7 +1606,7 @@ function renderWeekEcho(){
       <span style="color:var(--ink)">„${esc(pe.note)}"</span></div>`;
   }
   const card=document.createElement('div');
-  card.className='card'; card.style.cssText='margin-top:12px;display:flex;flex-direction:column;gap:12px';
+  card.className='card stack'; card.style.cssText='margin-top:16px;display:flex;flex-direction:column;gap:12px';
   card.innerHTML=`<span class="eyebrow">Deine Woche in Farbe</span>
     <div style="display:flex;justify-content:space-between;padding:0 6px" aria-hidden="true">${cells}</div>${back}`;
   w.appendChild(card);
